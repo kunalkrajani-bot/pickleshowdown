@@ -345,7 +345,8 @@
     else if(a==="month"){ stepMonth(+el.getAttribute("data-dir")); }
     else if(a==="alltime"){ state.view.allTime=!state.view.allTime; render(); }
     else if(a==="opennew"){ openNew(); }
-    else if(a==="closenew"||a==="overlay"){ state.showNew=false; state.draft=null; render(); }
+    else if(a==="closenew"){ state.showNew=false; state.draft=null; render(); }
+    else if(a==="overlay"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
     else if(a==="savegame"){ saveGame(); }
     else if(a==="step"){ var k=el.getAttribute("data-key"); state.draft[k]=Math.max(0,(+state.draft[k])+(+el.getAttribute("data-d"))); render(); }
     else if(a==="addplayer"){ addPlayer(); }
