@@ -32,6 +32,9 @@
   .toggle{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px; background:var(--s100); border-radius:999px; padding:4px; }
   .toggle button{ border-radius:999px; padding:6px 0; font-size:12px; font-weight:600; color:var(--s400); }
   .toggle button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .toggle3{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; background:var(--s100); border-radius:999px; padding:4px; }
+  .toggle3 button{ border-radius:999px; padding:7px 0; font-size:12px; font-weight:600; color:var(--s400); }
+  .toggle3 button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
   .champ{ margin-top:12px; border-radius:16px; background:var(--tealD); color:#fff; padding:16px; position:relative; overflow:hidden; }
   .champ .blob{ position:absolute; right:-24px; top:-24px; width:96px; height:96px; border-radius:50%; background:rgba(163,230,53,.2); }
   .champ .tag{ display:flex; align-items:center; gap:6px; color:#bef264; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
@@ -165,11 +168,18 @@
   }
   function ranked(gs, mode){
     var arr=statsFor(gs);
-    arr.sort(function(x,y){ return mode==="wins"
-      ? (y.w-x.w)||(y.diff-x.diff)||(y.pf-x.pf)||x.name.localeCompare(y.name)
-      : (y.pf-x.pf)||(y.diff-x.diff)||(y.w-x.w)||x.name.localeCompare(y.name); });
+    arr.forEach(function(r){ r.pct = r.g ? r.w/r.g : 0; });
+    if(mode==="winpct"){
+      arr.sort(function(x,y){ return (y.pct-x.pct)||(y.w-x.w)||(y.diff-x.diff)||x.name.localeCompare(y.name); });
+    } else {
+      arr.sort(function(x,y){ return mode==="wins"
+        ? (y.w-x.w)||(y.diff-x.diff)||(y.pf-x.pf)||x.name.localeCompare(y.name)
+        : (y.pf-x.pf)||(y.diff-x.diff)||(y.w-x.w)||x.name.localeCompare(y.name); });
+    }
     return arr;
   }
+  var WINPCT_MIN=4;
+  function pctStr(r){ return Math.round(r.pct*100)+"%"; }
   function trailing(gs, target){
     var ordered=gs.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
     var seq={};
@@ -239,25 +249,45 @@
   }
   function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); return playersScreen(ap); }
   function leaderboard(ap){
-    var gs=monthGames(); var isWins=state.boardMode==="wins"; var rk=ranked(gs,state.boardMode);
-    var html=monthSwitcher()+'<div class="toggle"><button class="'+(!isWins?'on':'')+'" data-act="mode" data-mode="points">By points</button><button class="'+(isWins?'on':'')+'" data-act="mode" data-mode="wins">By wins</button></div>';
+    var gs=monthGames(); var mode=state.boardMode; var isWins=mode==="wins"; var isPct=mode==="winpct";
+    var allRk=ranked(gs,mode);
+    var rk = isPct ? allRk.filter(function(r){return r.g>=WINPCT_MIN;}) : allRk;
+    var nearly = isPct ? allRk.filter(function(r){return r.g>0 && r.g<WINPCT_MIN;}) : [];
+    var html=monthSwitcher()+'<div class="toggle3">'+
+      '<button class="'+(mode==="points"?'on':'')+'" data-act="mode" data-mode="points">Points</button>'+
+      '<button class="'+(isWins?'on':'')+'" data-act="mode" data-mode="wins">Wins</button>'+
+      '<button class="'+(isPct?'on':'')+'" data-act="mode" data-mode="winpct">Win %</button></div>';
     if(rk.length===0){ var hp=state.players.length>0;
-      return html+emptyHTML(hp?"No games this period":"Welcome to the court", hp?"Tap the + button to record your first match and the leaderboard will fill in.":"Add a few players first, then record a game.", (ap.length>=4)?"Record a game":null);
+      var msg = isPct ? "No one has played "+WINPCT_MIN+" games yet this period — keep playing to qualify for the win % board."
+        : (hp?"Tap the + button to record your first match and the leaderboard will fill in.":"Add a few players first, then record a game.");
+      var out=html+emptyHTML(hp?"No qualifiers yet":"Welcome to the court", msg, (ap.length>=4&&!isPct)?"Record a game":null);
+      return out+nearlyNote(nearly);
     }
     var L=rk[0];
-    html+='<div class="champ"><div class="blob"></div><div class="tag">👑 Leading '+(state.view.allTime?"all time":MONTHS[state.view.month])+' &middot; '+(isWins?"wins":"points")+'</div>'+
-      '<div class="fe"><div class="name">'+esc(L.name)+'</div><div style="text-align:right"><div class="big tnum">'+(isWins?L.w:L.pf)+'</div><div class="unit">'+(isWins?"wins":"points")+'</div></div></div>'+
-      '<div class="line tnum">'+L.g+' games &middot; '+L.w+'W '+L.l+'L &middot; '+L.pf+' pts &middot; '+(L.diff>=0?"+":"")+L.diff+' diff</div></div>';
+    var bigVal = isPct ? pctStr(L) : (isWins?L.w:L.pf);
+    var bigUnit = isPct ? "win rate" : (isWins?"wins":"points");
+    html+='<div class="champ"><div class="blob"></div><div class="tag">👑 Leading '+(state.view.allTime?"all time":MONTHS[state.view.month])+' &middot; '+(isPct?"win %":isWins?"wins":"points")+'</div>'+
+      '<div class="fe"><div class="name">'+esc(L.name)+'</div><div style="text-align:right"><div class="big tnum">'+bigVal+'</div><div class="unit">'+bigUnit+'</div></div></div>'+
+      '<div class="line tnum">'+L.g+' games &middot; '+L.w+'W '+L.l+'L &middot; '+pctStr(L)+' &middot; '+L.pf+' pts</div></div>';
     html+='<div class="rows">';
     rk.forEach(function(r,i){ var rank=i+1,total=rk.length; var cls=rank===1?"g1":rank===2?"g2":rank===3?"g3":"";
       var rowcls=rank===1?"row first":(total>1&&rank===total)?"row last":"row";
-      var sub=isWins?(r.g+' games &middot; '+r.pf+' pts &middot; '+(r.diff>=0?"+":"")+r.diff):(r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+(r.diff>=0?"+":"")+r.diff);
+      var sub = isPct ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+r.pf+' pts')
+        : isWins ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+(r.diff>=0?"+":"")+r.diff)
+        : (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+(r.diff>=0?"+":"")+r.diff);
+      var bv = isPct ? pctStr(r) : (isWins?r.w:r.pf);
+      var bu = isPct ? "win" : (isWins?"wins":"pts");
       html+='<div class="'+rowcls+'"><div class="rank '+cls+' tnum">'+rank+'</div><div class="mood">'+moodEmoji(rank,total)+'</div>'+
         '<div class="nm"><div class="n">'+esc(r.name)+'</div><div class="s tnum">'+sub+'</div></div>'+
-        '<div class="val"><div class="v tnum">'+(isWins?r.w:r.pf)+'</div><div class="u">'+(isWins?"wins":"pts")+'</div></div></div>';
+        '<div class="val"><div class="v tnum">'+bv+'</div><div class="u">'+bu+'</div></div></div>';
     });
-    html+='</div><div class="note">Ranked by '+(isWins?"games won":"total points scored")+' &middot; '+gs.length+' game'+(gs.length===1?'':'s')+' this period</div>';
-    return html;
+    html+='</div><div class="note">'+(isPct?("Ranked by win % &middot; minimum "+WINPCT_MIN+" games to qualify"):("Ranked by "+(isWins?"games won":"total points scored")))+' &middot; '+gs.length+' game'+(gs.length===1?'':'s')+' this period</div>';
+    return html+nearlyNote(nearly);
+  }
+  function nearlyNote(nearly){
+    if(!nearly||!nearly.length) return "";
+    var names=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+WINPCT_MIN+")";}).join(", ");
+    return '<div class="note" style="margin-top:8px">Almost qualified: '+names+'</div>';
   }
   function gamesList(){
     var games=monthGames().slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
