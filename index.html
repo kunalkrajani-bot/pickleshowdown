@@ -35,6 +35,12 @@
   .toggle3{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; background:var(--s100); border-radius:999px; padding:4px; }
   .toggle3 button{ border-radius:999px; padding:7px 0; font-size:12px; font-weight:600; color:var(--s400); }
   .toggle3 button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .toggle4{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; background:var(--s100); border-radius:14px; padding:4px; }
+  .toggle4 button{ border-radius:10px; padding:7px 2px; font-size:11px; font-weight:600; color:var(--s400); }
+  .toggle4 button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .dayrow{ margin-top:8px; display:flex; align-items:center; gap:8px; }
+  .daypick{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--s200); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--s500); background:#fff; }
+  .daypick input{ border:none; outline:none; background:transparent; font-size:12px; color:var(--s700); font-family:inherit; }
   .champ{ margin-top:12px; border-radius:16px; background:var(--tealD); color:#fff; padding:16px; position:relative; overflow:hidden; }
   .champ .blob{ position:absolute; right:-24px; top:-24px; width:96px; height:96px; border-radius:50%; background:rgba(163,230,53,.2); }
   .champ .tag{ display:flex; align-items:center; gap:6px; color:#bef264; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
@@ -146,7 +152,11 @@
   function nameOf(id){ var p=state.players.find(function(x){return x.id===id;}); return p?p.name:"Unknown"; }
   function activePlayers(){ return state.players.filter(function(p){return p.active!==false;}); }
   function removedPlayers(){ return state.players.filter(function(p){return p.active===false;}); }
-  function monthGames(){ if(state.view.allTime) return state.games; return state.games.filter(function(g){ var p=g.date.split("-").map(Number); return p[0]===state.view.year && (p[1]-1)===state.view.month; }); }
+  function monthGames(){
+    if(state.view.day) return state.games.filter(function(g){ return g.date===state.view.day; });
+    if(state.view.allTime) return state.games;
+    return state.games.filter(function(g){ var p=g.date.split("-").map(Number); return p[0]===state.view.year && (p[1]-1)===state.view.month; });
+  }
 
   function commit(){ render(); pushSave({ players: state.players, games: state.games }); }
   function pushSave(snap){
@@ -168,9 +178,11 @@
   }
   function ranked(gs, mode){
     var arr=statsFor(gs);
-    arr.forEach(function(r){ r.pct = r.g ? r.w/r.g : 0; });
+    arr.forEach(function(r){ r.pct = r.g ? r.w/r.g : 0; r.avg = r.g ? r.pf/r.g : 0; });
     if(mode==="winpct"){
       arr.sort(function(x,y){ return (y.pct-x.pct)||(y.w-x.w)||(y.diff-x.diff)||x.name.localeCompare(y.name); });
+    } else if(mode==="avg"){
+      arr.sort(function(x,y){ return (y.avg-x.avg)||(y.pf-x.pf)||(y.diff-x.diff)||x.name.localeCompare(y.name); });
     } else {
       arr.sort(function(x,y){ return mode==="wins"
         ? (y.w-x.w)||(y.diff-x.diff)||(y.pf-x.pf)||x.name.localeCompare(y.name)
@@ -178,8 +190,9 @@
     }
     return arr;
   }
-  var WINPCT_MIN=4;
+  var QUAL_MIN=4;
   function pctStr(r){ return Math.round(r.pct*100)+"%"; }
+  function avgStr(r){ return (Math.round(r.avg*10)/10).toFixed(1); }
   function trailing(gs, target){
     var ordered=gs.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
     var seq={};
@@ -242,51 +255,63 @@
       '<span class="sync"><span class="sdot" id="syncDot" style="background:'+i[0]+';'+(state.sync==="synced"?"box-shadow:0 0 0 3px rgba(163,230,53,.25);":"")+'"></span><span id="syncTxt">'+i[1]+'</span></span>'+
       '</div><div class="meta">'+ap.length+' player'+(ap.length===1?'':'s')+' &middot; '+state.games.length+' game'+(state.games.length===1?'':'s')+' logged</div></div>';
   }
-  function monthSwitcher(){ var lbl=state.view.allTime?"All time":(MONTHS[state.view.month]+" "+state.view.year);
-    return '<div class="msw"><button class="circ" data-act="month" data-dir="-1" '+(state.view.allTime?'disabled':'')+'>&#8249;</button>'+
-      '<div class="lbl">'+lbl+'</div><button class="circ" data-act="month" data-dir="1" '+(state.view.allTime?'disabled':'')+'>&#8250;</button>'+
+  function monthSwitcher(){
+    var lbl = state.view.day ? fmtDate(state.view.day) : (state.view.allTime?"All time":(MONTHS[state.view.month]+" "+state.view.year));
+    var dayDis = state.view.day || state.view.allTime;
+    var html='<div class="msw"><button class="circ" data-act="month" data-dir="-1" '+(dayDis?'disabled':'')+'>&#8249;</button>'+
+      '<div class="lbl">'+lbl+'</div><button class="circ" data-act="month" data-dir="1" '+(dayDis?'disabled':'')+'>&#8250;</button>'+
       '<button class="pill '+(state.view.allTime?'on':'')+'" data-act="alltime">All time</button></div>';
+    html+='<div class="dayrow"><label class="daypick"><span>📅 Day</span>'+
+      '<input type="date" value="'+(state.view.day||"")+'" data-act="setday" /></label>';
+    if(state.view.day) html+='<button class="pill" data-act="clearday">Clear day</button>';
+    html+='</div>';
+    return html;
   }
   function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); return playersScreen(ap); }
   function leaderboard(ap){
-    var gs=monthGames(); var mode=state.boardMode; var isWins=mode==="wins"; var isPct=mode==="winpct";
+    var gs=monthGames(); var mode=state.boardMode;
+    var isWins=mode==="wins", isPct=mode==="winpct", isAvg=mode==="avg";
+    var qualMode = isPct||isAvg;
     var allRk=ranked(gs,mode);
-    var rk = isPct ? allRk.filter(function(r){return r.g>=WINPCT_MIN;}) : allRk;
-    var nearly = isPct ? allRk.filter(function(r){return r.g>0 && r.g<WINPCT_MIN;}) : [];
-    var html=monthSwitcher()+'<div class="toggle3">'+
+    var rk = qualMode ? allRk.filter(function(r){return r.g>=QUAL_MIN;}) : allRk;
+    var nearly = qualMode ? allRk.filter(function(r){return r.g>0 && r.g<QUAL_MIN;}) : [];
+    var html=monthSwitcher()+'<div class="toggle4">'+
       '<button class="'+(mode==="points"?'on':'')+'" data-act="mode" data-mode="points">Points</button>'+
       '<button class="'+(isWins?'on':'')+'" data-act="mode" data-mode="wins">Wins</button>'+
-      '<button class="'+(isPct?'on':'')+'" data-act="mode" data-mode="winpct">Win %</button></div>';
+      '<button class="'+(isPct?'on':'')+'" data-act="mode" data-mode="winpct">Win %</button>'+
+      '<button class="'+(isAvg?'on':'')+'" data-act="mode" data-mode="avg">Avg pts</button></div>';
     if(rk.length===0){ var hp=state.players.length>0;
-      var msg = isPct ? "No one has played "+WINPCT_MIN+" games yet this period — keep playing to qualify for the win % board."
+      var msg = qualMode ? "No one has played "+QUAL_MIN+" games yet this period — keep playing to qualify."
         : (hp?"Tap the + button to record your first match and the leaderboard will fill in.":"Add a few players first, then record a game.");
-      var out=html+emptyHTML(hp?"No qualifiers yet":"Welcome to the court", msg, (ap.length>=4&&!isPct)?"Record a game":null);
-      return out+nearlyNote(nearly);
+      return html+emptyHTML(hp?"No qualifiers yet":"Welcome to the court", msg, (ap.length>=4&&!qualMode)?"Record a game":null)+nearlyNote(nearly);
     }
     var L=rk[0];
-    var bigVal = isPct ? pctStr(L) : (isWins?L.w:L.pf);
-    var bigUnit = isPct ? "win rate" : (isWins?"wins":"points");
-    html+='<div class="champ"><div class="blob"></div><div class="tag">👑 Leading '+(state.view.allTime?"all time":MONTHS[state.view.month])+' &middot; '+(isPct?"win %":isWins?"wins":"points")+'</div>'+
+    var bigVal = isPct?pctStr(L):isAvg?avgStr(L):(isWins?L.w:L.pf);
+    var bigUnit = isPct?"win rate":isAvg?"avg pts":(isWins?"wins":"points");
+    var modeLabel = isPct?"win %":isAvg?"avg points":isWins?"wins":"points";
+    var period = state.view.day ? fmtDate(state.view.day) : (state.view.allTime?"all time":MONTHS[state.view.month]);
+    html+='<div class="champ"><div class="blob"></div><div class="tag">👑 Leading '+period+' &middot; '+modeLabel+'</div>'+
       '<div class="fe"><div class="name">'+esc(L.name)+'</div><div style="text-align:right"><div class="big tnum">'+bigVal+'</div><div class="unit">'+bigUnit+'</div></div></div>'+
-      '<div class="line tnum">'+L.g+' games &middot; '+L.w+'W '+L.l+'L &middot; '+pctStr(L)+' &middot; '+L.pf+' pts</div></div>';
+      '<div class="line tnum">'+L.g+' games &middot; '+L.w+'W '+L.l+'L &middot; '+pctStr(L)+' &middot; '+avgStr(L)+' avg &middot; '+L.pf+' pts</div></div>';
     html+='<div class="rows">';
     rk.forEach(function(r,i){ var rank=i+1,total=rk.length; var cls=rank===1?"g1":rank===2?"g2":rank===3?"g3":"";
       var rowcls=rank===1?"row first":(total>1&&rank===total)?"row last":"row";
       var sub = isPct ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+r.pf+' pts')
-        : isWins ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+(r.diff>=0?"+":"")+r.diff)
+        : isAvg ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+r.pf+' pts')
         : (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+(r.diff>=0?"+":"")+r.diff);
-      var bv = isPct ? pctStr(r) : (isWins?r.w:r.pf);
-      var bu = isPct ? "win" : (isWins?"wins":"pts");
+      var bv = isPct?pctStr(r):isAvg?avgStr(r):(isWins?r.w:r.pf);
+      var bu = isPct?"win":isAvg?"avg":(isWins?"wins":"pts");
       html+='<div class="'+rowcls+'"><div class="rank '+cls+' tnum">'+rank+'</div><div class="mood">'+moodEmoji(rank,total)+'</div>'+
         '<div class="nm"><div class="n">'+esc(r.name)+'</div><div class="s tnum">'+sub+'</div></div>'+
         '<div class="val"><div class="v tnum">'+bv+'</div><div class="u">'+bu+'</div></div></div>';
     });
-    html+='</div><div class="note">'+(isPct?("Ranked by win % &middot; minimum "+WINPCT_MIN+" games to qualify"):("Ranked by "+(isWins?"games won":"total points scored")))+' &middot; '+gs.length+' game'+(gs.length===1?'':'s')+' this period</div>';
+    var rankedBy = isPct?("win % &middot; min "+QUAL_MIN+" games"):isAvg?("avg points &middot; min "+QUAL_MIN+" games"):isWins?"games won":"total points scored";
+    html+='</div><div class="note">Ranked by '+rankedBy+' &middot; '+gs.length+' game'+(gs.length===1?'':'s')+' this period</div>';
     return html+nearlyNote(nearly);
   }
   function nearlyNote(nearly){
     if(!nearly||!nearly.length) return "";
-    var names=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+WINPCT_MIN+")";}).join(", ");
+    var names=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+QUAL_MIN+")";}).join(", ");
     return '<div class="note" style="margin-top:8px">Almost qualified: '+names+'</div>';
   }
   function gamesList(){
@@ -360,6 +385,7 @@
   function wire(){
     document.querySelectorAll("[data-act]").forEach(function(el){
       var act=el.getAttribute("data-act");
+      if(act==="setday"){ el.addEventListener("change",function(e){ state.view.day=e.target.value||null; if(state.view.day) state.view.allTime=false; render(); }); return; }
       if(act==="pick"){ el.addEventListener("change",function(e){ state.draft[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
       if(act==="setdate"){ el.addEventListener("change",function(e){ state.draft.date=e.target.value; }); return; }
       if(act==="adate"){ el.addEventListener("change",function(e){ state._adate=e.target.value; render(); }); return; }
@@ -373,7 +399,8 @@
     else if(a==="ttab"){ var t=el.getAttribute("data-t"); state.tab=(state.tab===t?"board":t); state.confirmDelete=null; render(); }
     else if(a==="mode"){ state.boardMode=el.getAttribute("data-mode"); render(); }
     else if(a==="month"){ stepMonth(+el.getAttribute("data-dir")); }
-    else if(a==="alltime"){ state.view.allTime=!state.view.allTime; render(); }
+    else if(a==="alltime"){ state.view.allTime=!state.view.allTime; state.view.day=null; render(); }
+    else if(a==="clearday"){ state.view.day=null; render(); }
     else if(a==="opennew"){ openNew(); }
     else if(a==="closenew"){ state.showNew=false; state.draft=null; render(); }
     else if(a==="overlay"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
@@ -388,7 +415,7 @@
     else if(a==="cancindel"){ state.confirmDelete=null; render(); }
     else if(a==="delgame"){ state.games=state.games.filter(function(g){return g.id!==el.getAttribute("data-id");}); state.confirmDelete=null; commit(); }
   }
-  function stepMonth(dir){ if(state.view.allTime){ state.view.allTime=false; render(); return; } var m=state.view.month+dir,y=state.view.year; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.view.month=m; state.view.year=y; render(); }
+  function stepMonth(dir){ if(state.view.day){ state.view.day=null; render(); return; } if(state.view.allTime){ state.view.allTime=false; render(); return; } var m=state.view.month+dir,y=state.view.year; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.view.month=m; state.view.year=y; render(); }
   function openNew(){ if(activePlayers().length<4) return; state.draft={t1a:"",t1b:"",t2a:"",t2b:"",s1:0,s2:0,date:todayISO()}; state.showNew=true; render(); }
   function saveGame(){ var d=state.draft; var picks=[d.t1a,d.t1b,d.t2a,d.t2b].filter(Boolean); if(picks.length!==4||new Set(picks).size!==4)return;
     state.games.push({id:uid(),t1:[d.t1a,d.t1b],t2:[d.t2a,d.t2b],s1:+d.s1||0,s2:+d.s2||0,date:d.date}); state.showNew=false; state.draft=null; state.tab="board"; commit(); }
