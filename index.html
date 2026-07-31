@@ -9,8 +9,7 @@
   :root{ --teal:#0f766e; --tealD:#115e59; --lime:#a3e635; --limeD:#84cc16;
     --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;--s400:#94a3b8;
     --s500:#64748b;--s700:#334155;--s800:#1e293b;--s900:#0f172a;--ccf:#ccfbf1;--t100:#99f6e4;}
-  body{ font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    background:var(--s50); color:var(--s900); line-height:1.4; }
+  body{ font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--s50); color:var(--s900); line-height:1.4; }
   .wrap{ max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; background:var(--s50); position:relative; }
   .tnum{ font-variant-numeric:tabular-nums; }
   button{ font-family:inherit; cursor:pointer; border:none; background:none; }
@@ -32,9 +31,6 @@
   .toggle{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px; background:var(--s100); border-radius:999px; padding:4px; }
   .toggle button{ border-radius:999px; padding:6px 0; font-size:12px; font-weight:600; color:var(--s400); }
   .toggle button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
-  .toggle3{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; background:var(--s100); border-radius:999px; padding:4px; }
-  .toggle3 button{ border-radius:999px; padding:7px 0; font-size:12px; font-weight:600; color:var(--s400); }
-  .toggle3 button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
   .toggle4{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; background:var(--s100); border-radius:14px; padding:4px; }
   .toggle4 button{ border-radius:10px; padding:7px 2px; font-size:11px; font-weight:600; color:var(--s400); }
   .toggle4 button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
@@ -60,7 +56,7 @@
   .val{ text-align:right; line-height:1; } .val .v{ font-size:20px; font-weight:800; color:var(--teal); } .val .u{ font-size:9px; text-transform:uppercase; letter-spacing:.12em; color:var(--s400); }
   .note{ margin-top:16px; text-align:center; font-size:11px; color:var(--s400); }
   .h2hpick{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; }
-  .h2hpick .vs{ font-size:13px; font-weight:800; color:var(--s400); }
+  .h2hpick .vs{ font-size:15px; font-weight:800; color:var(--s400); }
   .h2hscore{ display:flex; align-items:center; justify-content:center; gap:16px; margin-top:8px; }
   .h2hside{ text-align:center; flex:1; min-width:0; }
   .h2hside .hn{ font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -91,8 +87,7 @@
   .removed{ display:flex; align-items:center; gap:12px; border-radius:16px; border:1px dashed var(--s200); background:var(--s50); padding:8px 12px; color:var(--s400); }
   .removed .pn{ flex:1; font-size:14px; text-decoration:line-through; } .restore{ font-size:12px; font-weight:500; color:var(--teal); }
   .empty{ margin-top:40px; display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 24px; }
-  .empty .ic{ width:56px; height:56px; border-radius:50%; background:var(--ccf); display:flex; align-items:center; justify-content:center; }
-  .empty .ic span{ width:24px; height:24px; border-radius:50%; background:#5eead4; opacity:.6; }
+  .empty .ec{ width:56px; height:56px; border-radius:50%; background:var(--ccf); display:flex; align-items:center; justify-content:center; font-size:24px; }
   .empty h3{ margin-top:12px; font-size:16px; font-weight:700; color:var(--s800); } .empty p{ margin-top:4px; font-size:14px; color:var(--s500); }
   .empty .cta{ margin-top:16px; border-radius:12px; background:var(--teal); padding:8px 16px; font-size:14px; font-weight:600; color:#fff; }
   .arep{ display:flex; align-items:center; gap:8px; } .arep span.l{ font-size:13px; font-weight:600; color:var(--s500); }
@@ -117,7 +112,7 @@
   select.psel{ width:100%; border-radius:8px; border:1px solid var(--s200); background:#fff; padding:8px 10px; font-size:14px; outline:none; } .gap{ height:8px; }
   .stepbox{ border-radius:16px; border:1px solid var(--s200); padding:12px; } .stepbox .lab{ text-align:center; font-size:12px; font-weight:500; color:var(--s500); margin-bottom:8px; }
   .stepper{ display:flex; align-items:center; justify-content:space-between; } .stepbtn{ width:36px; height:36px; border-radius:8px; background:var(--s100); color:var(--s700); font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; }
-  .stepval{ width:48px; text-align:center; font-size:24px; font-weight:800; } .stepval.teal{ color:var(--teal); } .stepval.lime{ color:var(--limeD); }
+  .stepval{ width:48px; text-align:center; font-size:24px; font-weight:800; color:var(--teal); }
   .datebox{ margin-top:16px; display:flex; align-items:center; gap:8px; border-radius:12px; border:1px solid var(--s200); padding:10px 12px; }
   .datebox .dl{ font-size:14px; color:var(--s500); } .datebox input{ margin-left:auto; border:none; outline:none; font-size:14px; color:var(--s700); background:transparent; }
   .warn{ margin-top:8px; text-align:center; font-size:12px; color:#ef4444; }
@@ -128,34 +123,28 @@
 <div id="app" class="wrap"></div>
 <script>
 (function(){
-  /* ====== Supabase config ====== */
   var SB_URL = "https://vtnymepdnvysurpufyqr.supabase.co";
   var SB_KEY = "sb_publishable_CZLYUJODQoAsPZXLacg1yA_IkCfmlvy";
   var ROW = SB_URL + "/rest/v1/scores_state?id=eq.main";
   var H = { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" };
 
   function loadState(){
-    return fetch(ROW + "&select=data", { headers: H }).then(function(r){
-      if(!r.ok) throw new Error("load " + r.status);
-      return r.json();
-    }).then(function(rows){
-      var d = (rows && rows[0] && rows[0].data) ? rows[0].data : { players:[], games:[] };
-      return { players: Array.isArray(d.players)?d.players:[], games: Array.isArray(d.games)?d.games:[] };
-    });
+    return fetch(ROW + "&select=data", { headers: H }).then(function(r){ if(!r.ok) throw new Error("load "+r.status); return r.json(); })
+      .then(function(rows){ var d=(rows&&rows[0]&&rows[0].data)?rows[0].data:{}; return { players:Array.isArray(d.players)?d.players:[], games:Array.isArray(d.games)?d.games:[] }; });
   }
   function saveState(st){
-    return fetch(ROW, { method:"PATCH", headers: Object.assign({}, H, { Prefer:"return=minimal" }),
-      body: JSON.stringify({ data:{ players:st.players, games:st.games }, updated_at:new Date().toISOString() }) })
-      .then(function(r){ if(!r.ok) throw new Error("save " + r.status); });
+    return fetch(ROW, { method:"PATCH", headers:Object.assign({},H,{Prefer:"return=minimal"}),
+      body:JSON.stringify({ data:{players:st.players,games:st.games}, updated_at:new Date().toISOString() }) })
+      .then(function(r){ if(!r.ok) throw new Error("save "+r.status); });
   }
 
-  /* ====== State ====== */
   var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
   var WEEKDAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   var now=new Date();
   var state={ players:[], games:[], tab:"board", boardMode:"points",
-    view:{year:now.getFullYear(),month:now.getMonth(),allTime:false},
-    showNew:false, showRemoved:false, confirmDelete:null, draft:null, sync:"loading", hA:"", hB:"", hMode:"opponents" };
+    view:{year:now.getFullYear(),month:now.getMonth(),allTime:false,day:null},
+    showNew:false, showRemoved:false, confirmDelete:null, draft:null, sync:"loading",
+    hA:"", hB:"", hMode:"opponents" };
   var savingFlight=false, pendingSave=null;
 
   function uid(){ return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8); }
@@ -172,102 +161,99 @@
     return state.games.filter(function(g){ var p=g.date.split("-").map(Number); return p[0]===state.view.year && (p[1]-1)===state.view.month; });
   }
 
-  function commit(){ render(); pushSave({ players: state.players, games: state.games }); }
-  function pushSave(snap){
-    if(savingFlight){ pendingSave=snap; return; }
-    savingFlight=true; setSync("saving");
-    saveState(snap).then(function(){ setSync("synced"); }).catch(function(){ setSync("offline"); })
-      .then(function(){ savingFlight=false; if(pendingSave){ var p=pendingSave; pendingSave=null; pushSave(p); } });
-  }
-  function setSync(s){ state.sync=s; var el=document.getElementById("syncDot"); if(el) updateSync(); }
+  function commit(){ render(); pushSave({players:state.players,games:state.games}); }
+  function pushSave(snap){ if(savingFlight){ pendingSave=snap; return; } savingFlight=true; setSync("saving");
+    saveState(snap).then(function(){setSync("synced");}).catch(function(){setSync("offline");})
+      .then(function(){ savingFlight=false; if(pendingSave){ var p=pendingSave; pendingSave=null; pushSave(p); } }); }
+  function setSync(s){ state.sync=s; if(document.getElementById("syncDot")) updateSync(); }
 
-  /* ====== Standings ====== */
-  function statsFor(gs){
-    var m={}; function e(id){ if(!m[id]) m[id]={id:id,name:nameOf(id),pf:0,pa:0,g:0,w:0,l:0}; return m[id]; }
+  function statsFor(gs){ var m={}; function e(id){ if(!m[id]) m[id]={id:id,pf:0,pa:0,g:0,w:0,l:0}; return m[id]; }
     gs.forEach(function(g){ var a=+g.s1,b=+g.s2;
       g.t1.forEach(function(id){var r=e(id);r.pf+=a;r.pa+=b;r.g++;if(a>b)r.w++;else if(a<b)r.l++;});
-      g.t2.forEach(function(id){var r=e(id);r.pf+=b;r.pa+=a;r.g++;if(b>a)r.w++;else if(b<a)r.l++;});
-    });
-    return Object.keys(m).map(function(k){ var r=m[k]; r.diff=r.pf-r.pa; return r; });
-  }
+      g.t2.forEach(function(id){var r=e(id);r.pf+=b;r.pa+=a;r.g++;if(b>a)r.w++;else if(b<a)r.l++;}); });
+    return Object.keys(m).map(function(k){var r=m[k];r.name=nameOf(r.id);r.diff=r.pf-r.pa;return r;}); }
   function ranked(gs, mode){
     var arr=statsFor(gs);
     arr.forEach(function(r){ r.pct = r.g ? r.w/r.g : 0; r.avg = r.g ? r.pf/r.g : 0; });
-    if(mode==="winpct"){
-      arr.sort(function(x,y){ return (y.pct-x.pct)||(y.w-x.w)||(y.diff-x.diff)||x.name.localeCompare(y.name); });
-    } else if(mode==="avg"){
-      arr.sort(function(x,y){ return (y.avg-x.avg)||(y.pf-x.pf)||(y.diff-x.diff)||x.name.localeCompare(y.name); });
-    } else {
-      arr.sort(function(x,y){ return mode==="wins"
-        ? (y.w-x.w)||(y.diff-x.diff)||(y.pf-x.pf)||x.name.localeCompare(y.name)
-        : (y.pf-x.pf)||(y.diff-x.diff)||(y.w-x.w)||x.name.localeCompare(y.name); });
-    }
+    if(mode==="winpct"){ arr.sort(function(x,y){ return (y.pct-x.pct)||(y.w-x.w)||(y.diff-x.diff)||x.name.localeCompare(y.name); }); }
+    else if(mode==="avg"){ arr.sort(function(x,y){ return (y.avg-x.avg)||(y.pf-x.pf)||(y.diff-x.diff)||x.name.localeCompare(y.name); }); }
+    else { arr.sort(function(x,y){ return mode==="wins"
+      ? (y.w-x.w)||(y.diff-x.diff)||(y.pf-x.pf)||x.name.localeCompare(y.name)
+      : (y.pf-x.pf)||(y.diff-x.diff)||(y.w-x.w)||x.name.localeCompare(y.name); }); }
     return arr;
   }
   var QUAL_MIN=4;
   function pctStr(r){ return Math.round(r.pct*100)+"%"; }
   function avgStr(r){ return (Math.round(r.avg*10)/10).toFixed(1); }
-  function trailing(gs, target){
-    var ordered=gs.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
-    var seq={};
-    ordered.forEach(function(g){ var a=+g.s1,b=+g.s2,aw=a>b,bw=b>a;
+  function trailing(gs,target){ var ord=gs.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;}); var seq={};
+    ord.forEach(function(g){ var a=+g.s1,b=+g.s2,aw=a>b,bw=b>a;
       g.t1.forEach(function(id){(seq[id]=seq[id]||[]).push(aw?"W":bw?"L":"T");});
-      g.t2.forEach(function(id){(seq[id]=seq[id]||[]).push(bw?"W":aw?"L":"T");});
-    });
-    return Object.keys(seq).map(function(id){ var arr=seq[id],s=0; for(var i=arr.length-1;i>=0;i--){ if(arr[i]===target)s++; else break; } return {id:id,name:nameOf(id),streak:s}; });
-  }
+      g.t2.forEach(function(id){(seq[id]=seq[id]||[]).push(bw?"W":aw?"L":"T");}); });
+    return Object.keys(seq).map(function(id){var arr=seq[id],s=0;for(var i=arr.length-1;i>=0;i--){if(arr[i]===target)s++;else break;}return {id:id,name:nameOf(id),streak:s};}); }
   function moodEmoji(rank,total){ if(total<2)return "🎾"; if(rank===1)return "😎"; if(rank===total)return "😠"; if(rank===2)return "😄"; if(rank===3)return "🙂"; if(rank>total-2)return "😕"; return "😐"; }
 
-  /* ====== Analyst ====== */
-  function generateReport(date){
-    var dayG=state.games.filter(function(g){return g.date===date;});
-    var day=ranked(dayG,"wins");
-    var all=ranked(state.games,"points");
-    var totalPts=dayG.reduce(function(s,g){return s+(+g.s1)+(+g.s2);},0);
-    var cards=[];
-    var headline=dayG.length+" game"+(dayG.length===1?"":"s")+" · "+day.length+" player"+(day.length===1?"":"s")+" · "+totalPts+" total points";
-    if(day.length){ var m=day[0]; var wr=m.g?Math.round((m.w/m.g)*100):0;
-      cards.push({i:"⭐",t:"Player of the Day",b:m.name+" ran the table — "+m.w+"W "+m.l+"L across "+m.g+" game"+(m.g===1?"":"s")+", racking up "+m.pf+" points ("+(m.diff>=0?"+":"")+m.diff+" differential, "+wr+"% win rate)."+(day.length>1?" Closest challenger: "+day[1].name+" on "+day[1].pf+" points.":"")});
-    }
-    if(dayG.length){
-      var big=dayG[0],small=dayG[0];
-      dayG.forEach(function(g){ var mg=Math.abs((+g.s1)-(+g.s2)); if(mg>Math.abs((+big.s1)-(+big.s2)))big=g; if(mg<Math.abs((+small.s1)-(+small.s2)))small=g; });
-      function desc(g){ var a=+g.s1,b=+g.s2,wT=a>=b?g.t1:g.t2,lT=a>=b?g.t2:g.t1; return wT.map(nameOf).join(" & ")+" beat "+lT.map(nameOf).join(" & ")+" "+Math.max(a,b)+"–"+Math.min(a,b); }
-      var bm=Math.abs((+big.s1)-(+big.s2));
-      cards.push({i:"💥",t:"Statement Win",b: bm===0?"Every game stayed tight — not a single blowout on the board.":desc(big)+" — a "+bm+"-point demolition, the day's most lopsided result."});
-      if(dayG.length>1){ var sm=Math.abs((+small.s1)-(+small.s2)); cards.push({i:"🔥",t:"Nail-Biter",b:desc(small)+(sm===0?" in a dead-even battle":", decided by just "+sm)+". Whoever blinked first lost this one."}); }
-    }
-    var pairW={};
-    dayG.forEach(function(g){ var a=+g.s1,b=+g.s2,win=a>b?g.t1:b>a?g.t2:null; if(win){ var k=win.slice().sort().join("|"); pairW[k]=(pairW[k]||0)+1; } });
-    var bestPair=null,bestN=0; Object.keys(pairW).forEach(function(k){ if(pairW[k]>bestN){bestN=pairW[k];bestPair=k;} });
-    if(bestPair&&bestN>=2){ cards.push({i:"🤝",t:"Dream Team",b:bestPair.split("|").map(nameOf).join(" & ")+" clicked as partners, winning "+bestN+" games together. Real chemistry on the court."}); }
-    var hot=trailing(state.games,"W").filter(function(s){return s.streak>=2;}).sort(function(a,b){return b.streak-a.streak;});
-    var cold=trailing(state.games,"L").filter(function(s){return s.streak>=2;}).sort(function(a,b){return b.streak-a.streak;});
-    if(hot.length) cards.push({i:"📈",t:"On Fire",b:hot[0].name+" is riding a "+hot[0].streak+"-game win streak — the hottest hand in the group right now."});
-    if(cold.length) cards.push({i:"📉",t:"Cold Spell",b:cold[0].name+" has dropped "+cold[0].streak+" in a row. Time to switch up the strategy."});
-    if(all.length&&day.length){ var leader=all[0],mvp=day[0];
-      if(leader.id!==mvp.id){ var rk=all.findIndex(function(p){return p.id===mvp.id;})+1; cards.push({i:"🏅",t:"Season Watch",b:leader.name+" still leads the overall standings on "+leader.pf+" points, but "+mvp.name+"'s strong showing (currently #"+rk+") is closing the gap."}); }
-      else { cards.push({i:"🏅",t:"Season Watch",b:leader.name+" backed up the top overall ranking ("+leader.pf+" pts) with another dominant day. The leader looks untouchable."}); }
-    }
-    var takes=["Tighten up the serve returns and tomorrow's a different story.","Momentum is everything in Americano — keep stacking those points.","The margins are razor-thin at the top. Every rally counts.","Early mornings clearly reward the bold."];
-    cards.push({i:"🎤",t:"Analyst's Take",b:takes[(dayG.length+totalPts)%takes.length]});
-    return { date:date, headline:headline, cards:cards };
+  /* head to head (opponents) */
+  function h2h(idA, idB){
+    var res={ games:0, aWins:0, bWins:0, aPts:0, bPts:0, list:[] };
+    state.games.forEach(function(g){
+      var aOn1=g.t1.indexOf(idA)>-1, aOn2=g.t2.indexOf(idA)>-1;
+      var bOn1=g.t1.indexOf(idB)>-1, bOn2=g.t2.indexOf(idB)>-1;
+      var opposed=(aOn1&&bOn2)||(aOn2&&bOn1);
+      if(!opposed) return;
+      var s1=+g.s1, s2=+g.s2; var aScore=aOn1?s1:s2, bScore=bOn1?s1:s2;
+      res.games++; res.aPts+=aScore; res.bPts+=bScore;
+      if(aScore>bScore) res.aWins++; else if(bScore>aScore) res.bWins++;
+      res.list.push({date:g.date, aScore:aScore, bScore:bScore});
+    });
+    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
+    return res;
+  }
+  /* partners (same team) */
+  function duo(idA, idB){
+    var res={ games:0, wins:0, losses:0, pf:0, pa:0, list:[] };
+    state.games.forEach(function(g){
+      var both1=g.t1.indexOf(idA)>-1 && g.t1.indexOf(idB)>-1;
+      var both2=g.t2.indexOf(idA)>-1 && g.t2.indexOf(idB)>-1;
+      if(!both1 && !both2) return;
+      var s1=+g.s1, s2=+g.s2; var us=both1?s1:s2, them=both1?s2:s1;
+      res.games++; res.pf+=us; res.pa+=them;
+      if(us>them) res.wins++; else if(them>us) res.losses++;
+      var oppIds=both1?g.t2:g.t1;
+      res.list.push({date:g.date, us:us, them:them, opp:oppIds.map(nameOf).join(" & ")});
+    });
+    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
+    return res;
   }
 
-  /* ====== Render ====== */
-  function render(){
-    var ap=activePlayers();
-    document.getElementById("app").innerHTML =
-      header(ap) + "<main>" + body(ap) + "</main>" + nav(ap) + histPills() + (state.showNew?sheet(ap):"");
-    wire();
+  /* analyst */
+  function generateReport(date){
+    var dG=state.games.filter(function(g){return g.date===date;});
+    var court=ranked(dG,"wins"); var totalPts=dG.reduce(function(s,g){return s+(+g.s1)+(+g.s2);},0);
+    var cards=[]; var headline=dG.length+" game"+(dG.length===1?"":"s")+" · "+court.length+" player"+(court.length===1?"":"s")+" · "+totalPts+" points";
+    if(court.length){ var m=court[0]; var wr=m.g?Math.round((m.w/m.g)*100):0;
+      cards.push({i:"⭐",t:"Player of the Day",b:m.name+" led with "+m.w+"W "+m.l+"L across "+m.g+" game"+(m.g===1?"":"s")+", "+m.pf+" points ("+wr+"% win rate)."}); }
+    if(dG.length){ var big=dG[0]; dG.forEach(function(g){ if(Math.abs((+g.s1)-(+g.s2))>Math.abs((+big.s1)-(+big.s2)))big=g; });
+      var a=+big.s1,b=+big.s2,wT=a>=b?big.t1:big.t2,lT=a>=b?big.t2:big.t1,bm=Math.abs(a-b);
+      cards.push({i:"💥",t:"Statement Win",b: bm===0?"Every game stayed tight.":(wT.map(nameOf).join(" & ")+" beat "+lT.map(nameOf).join(" & ")+" "+Math.max(a,b)+"–"+Math.min(a,b)+".")}); }
+    var hot=trailing(state.games,"W").filter(function(s){return s.streak>=2;}).sort(function(a,b){return b.streak-a.streak;});
+    if(hot.length) cards.push({i:"📈",t:"On Fire",b:hot[0].name+" is on a "+hot[0].streak+"-game win streak."});
+    var cold=trailing(state.games,"L").filter(function(s){return s.streak>=2;}).sort(function(a,b){return b.streak-a.streak;});
+    if(cold.length) cards.push({i:"📉",t:"Cold Spell",b:cold[0].name+" has dropped "+cold[0].streak+" in a row."});
+    cards.push({i:"🎤",t:"Analyst's Take",b:["Tighten the serve returns.","Momentum is everything.","The margins are razor-thin at the top.","Early mornings reward the bold."][(dG.length+totalPts)%4]});
+    return {date:date,headline:headline,cards:cards};
   }
+
+  /* render */
+  function render(){ var ap=activePlayers();
+    document.getElementById("app").innerHTML = header(ap)+"<main>"+body(ap)+"</main>"+nav(ap)+histPills()+(state.showNew?sheet(ap):"");
+    wire(); }
   function syncInfo(){ return ({loading:["#fde68a","Loading"],synced:["var(--lime)","Live"],saving:["#fde68a","Saving"],offline:["#fca5a5","Offline"]})[state.sync]||["var(--lime)","Live"]; }
-  function updateSync(){ var i=syncInfo(); var d=document.getElementById("syncDot"); var t=document.getElementById("syncTxt"); if(d){ d.style.background=i[0]; d.style.boxShadow=state.sync==="synced"?"0 0 0 3px rgba(163,230,53,.25)":"none"; } if(t) t.textContent=i[1]; }
+  function updateSync(){ var i=syncInfo(); var d=document.getElementById("syncDot"); var t=document.getElementById("syncTxt"); if(d){ d.style.background=i[0]; } if(t) t.textContent=i[1]; }
   function header(ap){ var i=syncInfo();
     return '<div class="header"><div class="hrow"><div class="logo"><span></span></div>'+
       '<h1>Early Morning Pickle Showdown</h1>'+
-      '<span class="sync"><span class="sdot" id="syncDot" style="background:'+i[0]+';'+(state.sync==="synced"?"box-shadow:0 0 0 3px rgba(163,230,53,.25);":"")+'"></span><span id="syncTxt">'+i[1]+'</span></span>'+
-      '</div><div class="meta">'+ap.length+' player'+(ap.length===1?'':'s')+' &middot; '+state.games.length+' game'+(state.games.length===1?'':'s')+' logged</div></div>';
+      '<span class="sync"><span class="sdot" id="syncDot" style="background:'+i[0]+'"></span><span id="syncTxt">'+i[1]+'</span></span></div>'+
+      '<div class="meta">'+ap.length+' player'+(ap.length===1?'':'s')+' · '+state.games.length+' game'+(state.games.length===1?'':'s')+' logged</div></div>';
   }
   function monthSwitcher(){
     var lbl = state.view.day ? fmtDate(state.view.day) : (state.view.allTime?"All time":(MONTHS[state.view.month]+" "+state.view.year));
@@ -275,17 +261,16 @@
     var html='<div class="msw"><button class="circ" data-act="month" data-dir="-1" '+(dayDis?'disabled':'')+'>&#8249;</button>'+
       '<div class="lbl">'+lbl+'</div><button class="circ" data-act="month" data-dir="1" '+(dayDis?'disabled':'')+'>&#8250;</button>'+
       '<button class="pill '+(state.view.allTime?'on':'')+'" data-act="alltime">All time</button></div>';
-    html+='<div class="dayrow"><label class="daypick"><span>📅 Day</span>'+
-      '<input type="date" value="'+(state.view.day||"")+'" data-act="setday" /></label>';
+    html+='<div class="dayrow"><label class="daypick"><span>📅 Day</span><input type="date" value="'+(state.view.day||"")+'" data-act="setday" /></label>';
     if(state.view.day) html+='<button class="pill" data-act="clearday">Clear day</button>';
     html+='</div>';
     return html;
   }
   function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); if(state.tab==="h2h")return h2hScreen(); return playersScreen(ap); }
+
   function leaderboard(ap){
     var gs=monthGames(); var mode=state.boardMode;
-    var isWins=mode==="wins", isPct=mode==="winpct", isAvg=mode==="avg";
-    var qualMode = isPct||isAvg;
+    var isWins=mode==="wins", isPct=mode==="winpct", isAvg=mode==="avg"; var qualMode=isPct||isAvg;
     var allRk=ranked(gs,mode);
     var rk = qualMode ? allRk.filter(function(r){return r.g>=QUAL_MIN;}) : allRk;
     var nearly = qualMode ? allRk.filter(function(r){return r.g>0 && r.g<QUAL_MIN;}) : [];
@@ -297,7 +282,7 @@
     if(rk.length===0){ var hp=state.players.length>0;
       var msg = qualMode ? "No one has played "+QUAL_MIN+" games yet this period — keep playing to qualify."
         : (hp?"Tap the + button to record your first match and the leaderboard will fill in.":"Add a few players first, then record a game.");
-      return html+emptyHTML(hp?"No qualifiers yet":"Welcome to the court", msg, (ap.length>=4&&!qualMode)?"Record a game":null)+nearlyNote(nearly);
+      return html+emptyHTML("🎾", hp?"No qualifiers yet":"Welcome to the court", msg, (ap.length>=4&&!qualMode)?"Record a game":null)+nearlyNote(nearly);
     }
     var L=rk[0];
     var bigVal = isPct?pctStr(L):isAvg?avgStr(L):(isWins?L.w:L.pf);
@@ -310,8 +295,7 @@
     html+='<div class="rows">';
     rk.forEach(function(r,i){ var rank=i+1,total=rk.length; var cls=rank===1?"g1":rank===2?"g2":rank===3?"g3":"";
       var rowcls=rank===1?"row first":(total>1&&rank===total)?"row last":"row";
-      var sub = isPct ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+r.pf+' pts')
-        : isAvg ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+r.pf+' pts')
+      var sub = isPct||isAvg ? (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+r.pf+' pts')
         : (r.g+' games &middot; '+r.w+'W '+r.l+'L &middot; '+(r.diff>=0?"+":"")+r.diff);
       var bv = isPct?pctStr(r):isAvg?avgStr(r):(isWins?r.w:r.pf);
       var bu = isPct?"win":isAvg?"avg":(isWins?"wins":"pts");
@@ -323,39 +307,36 @@
     html+='</div><div class="note">Ranked by '+rankedBy+' &middot; '+gs.length+' game'+(gs.length===1?'':'s')+' this period</div>';
     return html+nearlyNote(nearly);
   }
-  function h2h(idA, idB){
-    // games where A and B were on OPPOSITE teams
-    var res={ games:0, aWins:0, bWins:0, aPts:0, bPts:0, list:[] };
-    state.games.forEach(function(g){
-      var aOn1=g.t1.indexOf(idA)>-1, aOn2=g.t2.indexOf(idA)>-1;
-      var bOn1=g.t1.indexOf(idB)>-1, bOn2=g.t2.indexOf(idB)>-1;
-      var opposed=(aOn1&&bOn2)||(aOn2&&bOn1);
-      if(!opposed) return;
-      var s1=+g.s1, s2=+g.s2;
-      var aScore=aOn1?s1:s2, bScore=bOn1?s1:s2;
-      res.games++; res.aPts+=aScore; res.bPts+=bScore;
-      if(aScore>bScore) res.aWins++; else if(bScore>aScore) res.bWins++;
-      res.list.push({date:g.date, aScore:aScore, bScore:bScore});
-    });
-    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
-    return res;
+  function nearlyNote(nearly){
+    if(!nearly||!nearly.length) return "";
+    var names=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+QUAL_MIN+")";}).join(", ");
+    return '<div class="note" style="margin-top:8px">Almost qualified: '+names+'</div>';
   }
-  function duo(idA, idB){
-    // games where A and B were on the SAME team
-    var res={ games:0, wins:0, losses:0, pf:0, pa:0, list:[] };
-    state.games.forEach(function(g){
-      var both1=g.t1.indexOf(idA)>-1 && g.t1.indexOf(idB)>-1;
-      var both2=g.t2.indexOf(idA)>-1 && g.t2.indexOf(idB)>-1;
-      if(!both1 && !both2) return;
-      var s1=+g.s1, s2=+g.s2;
-      var us=both1?s1:s2, them=both1?s2:s1;
-      res.games++; res.pf+=us; res.pa+=them;
-      if(us>them) res.wins++; else if(them>us) res.losses++;
-      var oppIds=both1?g.t2:g.t1;
-      res.list.push({date:g.date, us:us, them:them, opp:oppIds.map(nameOf).join(" & ")});
+
+  function gamesList(){
+    var games=monthGames().slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
+    var html=monthSwitcher();
+    if(games.length===0) return html+emptyHTML("🎾","No games yet","Recorded matches will show up here, newest first.",null);
+    html+='<div class="rows">';
+    games.forEach(function(g){ var aWon=+g.s1>+g.s2,bWon=+g.s2>+g.s1;
+      var del=state.confirmDelete===g.id?'<div class="confirm"><span>Delete?</span><button class="yes" data-act="delgame" data-id="'+g.id+'">Yes</button><button class="no" data-act="cancel">No</button></div>':'<button class="iconbtn" data-act="askdel" data-id="'+g.id+'">&#128465;</button>';
+      html+='<div class="game"><div class="gtop"><span class="gdate">'+fmtDate(g.date)+'</span>'+del+'</div><div class="gbody">'+
+        '<div class="team '+(aWon?'win':'')+'">'+g.t1.map(function(id){return '<div class="p">'+esc(nameOf(id))+'</div>';}).join("")+'</div>'+
+        '<div class="score"><span class="sc '+(aWon?'win':'')+' tnum">'+g.s1+'</span><span class="dash">&ndash;</span><span class="sc '+(bWon?'win':'')+' tnum">'+g.s2+'</span></div>'+
+        '<div class="team right '+(bWon?'win':'')+'">'+g.t2.map(function(id){return '<div class="p">'+esc(nameOf(id))+'</div>';}).join("")+'</div></div></div>';
     });
-    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
-    return res;
+    return html+'</div>';
+  }
+
+  function analyst(){
+    if(state.games.length===0) return emptyHTML("📋","No data to analyze yet","Record some games and a daily report will appear here.",null);
+    var dates=Object.keys(state.games.reduce(function(a,g){a[g.date]=1;return a;},{})).sort(function(a,b){return a<b?1:-1;});
+    if(!state._adate||dates.indexOf(state._adate)<0) state._adate=dates[0];
+    var rep=generateReport(state._adate);
+    var html='<div class="arep"><span class="l">Match report</span><select data-act="adate">'+dates.map(function(d){return '<option value="'+d+'" '+(d===state._adate?'selected':'')+'>'+fullDate(d)+'</option>';}).join("")+'</select></div>';
+    html+='<div class="champ" style="margin-top:12px"><div class="blob"></div><div class="tag">📋 Daily Report</div><div class="name" style="margin-top:4px;font-size:20px">'+fullDate(rep.date)+'</div><div class="line tnum">'+esc(rep.headline)+'</div></div>';
+    html+='<div class="rows">'+rep.cards.map(function(c){return '<div class="acard"><span class="ai">'+c.i+'</span><div><div class="at">'+esc(c.t)+'</div><div class="ab">'+esc(c.b)+'</div></div></div>';}).join("")+'</div>';
+    return html+'<div class="note">Generated from your recorded scores</div>';
   }
 
   function h2hScreen(){
@@ -365,12 +346,11 @@
     if(!state.hB||!ap.some(function(p){return p.id===state.hB;})) state.hB="";
     if(state.hMode!=="partners") state.hMode="opponents";
     function opts(sv,skip){ var o='<option value="">Select</option>'; ap.forEach(function(p){ if(skip&&p.id===skip)return; o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
-    var html='<div class="h2hpick"><select class="psel" data-act="hpick" data-slot="hA">'+opts(state.hA,state.hB)+'</select>'+
-      '<div class="vs">&amp;</div><select class="psel" data-act="hpick" data-slot="hB">'+opts(state.hB,state.hA)+'</select></div>';
     var isP=state.hMode==="partners";
-    html+='<div class="toggle" style="grid-template-columns:1fr 1fr"><button class="'+(!isP?'on':'')+'" data-act="hmode" data-m="opponents">🆚 Opponents</button><button class="'+(isP?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button></div>';
-    if(!state.hA||!state.hB) return html+emptyHTML(isP?"🤝":"🆚","Pick two players", isP?"Choose two players to see their record as a team — games, wins, and win % when they played together.":"Choose two players to see their head-to-head record when they played against each other.");
-
+    var html='<div class="h2hpick"><select class="psel" data-act="hpick" data-slot="hA">'+opts(state.hA,state.hB)+'</select>'+
+      '<div class="vs">'+(isP?"&amp;":"vs")+'</div><select class="psel" data-act="hpick" data-slot="hB">'+opts(state.hB,state.hA)+'</select></div>';
+    html+='<div class="toggle"><button class="'+(!isP?'on':'')+'" data-act="hmode" data-m="opponents">🆚 Opponents</button><button class="'+(isP?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button></div>';
+    if(!state.hA||!state.hB) return html+emptyHTML(isP?"🤝":"🆚","Pick two players", isP?"Choose two players to see their record as a team.":"Choose two players to see their head-to-head record.");
     var A=nameOf(state.hA), B=nameOf(state.hB);
     return html + (isP ? partnersView(A,B) : opponentsView(A,B));
   }
@@ -379,8 +359,7 @@
     if(r.games===0) return emptyHTML("🤷","No matchups yet",esc(A)+" and "+esc(B)+" haven't played on opposite teams yet.");
     var aPct=Math.round((r.aWins/r.games)*100), bPct=Math.round((r.bWins/r.games)*100);
     var lead = r.aWins>r.bWins?A:(r.bWins>r.aWins?B:null);
-    var html='<div class="champ" style="margin-top:12px"><div class="blob"></div>'+
-      '<div class="tag">🆚 Head to head · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
+    var html='<div class="champ" style="margin-top:12px"><div class="blob"></div><div class="tag">🆚 Head to head · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
       '<div class="h2hscore"><div class="h2hside"><div class="hn">'+esc(A)+'</div><div class="hw tnum">'+r.aWins+'</div></div>'+
       '<div class="h2hmid">–</div><div class="h2hside"><div class="hn">'+esc(B)+'</div><div class="hw tnum">'+r.bWins+'</div></div></div>'+
       '<div class="line" style="text-align:center">'+(lead?esc(lead)+" leads the series":"All square")+'</div></div>';
@@ -402,15 +381,13 @@
     var r=duo(state.hA,state.hB);
     if(r.games===0) return emptyHTML("🤷","Never partnered",esc(A)+" and "+esc(B)+" haven't played on the same team yet.");
     var pct=Math.round((r.wins/r.games)*100), diff=r.pf-r.pa;
-    var html='<div class="champ" style="margin-top:12px"><div class="blob"></div>'+
-      '<div class="tag">🤝 As partners · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
+    var html='<div class="champ" style="margin-top:12px"><div class="blob"></div><div class="tag">🤝 As partners · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
       '<div class="fe"><div class="name" style="font-size:20px">'+esc(A)+' &amp; '+esc(B)+'</div>'+
       '<div style="text-align:right"><div class="big tnum">'+pct+'%</div><div class="unit">win rate</div></div></div>'+
       '<div class="line tnum">'+r.wins+'W '+r.losses+'L · '+r.pf+' pts for · '+(diff>=0?"+":"")+diff+' diff</div></div>';
     html+='<div class="h2htable">'+
       '<div class="h2hr"><div class="hv lead tnum">'+r.wins+'</div><div class="hl">Wins together</div><div class="hv tnum">'+r.losses+'</div></div>'+
-      '<div class="h2hr"><div class="hv lead tnum">'+pct+'%</div><div class="hl">Win rate</div><div class="hv tnum">'+r.games+'</div></div>'+
-      '</div>'+
+      '<div class="h2hr"><div class="hv lead tnum">'+pct+'%</div><div class="hl">Win rate</div><div class="hv tnum">'+r.games+'</div></div></div>'+
       '<div class="note" style="text-align:left;margin-top:6px">Left: wins / win rate · Right: losses / games played</div>';
     html+='<div class="note" style="margin-top:16px;text-align:left">Games together</div><div class="rows" style="margin-top:8px">';
     r.list.slice(0,10).forEach(function(m){ var won=m.us>m.them, lost=m.them>m.us;
@@ -425,49 +402,23 @@
   function h2hRow(label, av, bv, aLead, bLead){
     return '<div class="h2hr"><div class="hv '+(aLead?'lead':'')+' tnum">'+av+'</div><div class="hl">'+label+'</div><div class="hv '+(bLead?'lead':'')+' tnum">'+bv+'</div></div>';
   }
-  function gamesList(){
-    var games=monthGames().slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
-    var html=monthSwitcher();
-    if(games.length===0) return html+emptyHTML("No games yet","Recorded matches will show up here, newest first.",null);
-    html+='<div class="rows">';
-    games.forEach(function(g){ var aWon=+g.s1>+g.s2,bWon=+g.s2>+g.s1;
-      var del=state.confirmDelete===g.id?'<div class="confirm"><span>Delete?</span><button class="yes" data-act="delgame" data-id="'+g.id+'">Yes</button><button class="no" data-act="cancindel">No</button></div>':'<button class="iconbtn" data-act="askdel" data-id="'+g.id+'">&#128465;</button>';
-      html+='<div class="game"><div class="gtop"><span class="gdate">'+fmtDate(g.date)+'</span>'+del+'</div><div class="gbody">'+
-        '<div class="team '+(aWon?'win':'')+'">'+g.t1.map(function(id){return '<div class="p">'+esc(nameOf(id))+'</div>';}).join("")+'</div>'+
-        '<div class="score"><span class="sc '+(aWon?'win':'')+' tnum">'+g.s1+'</span><span class="dash">&ndash;</span><span class="sc '+(bWon?'win':'')+' tnum">'+g.s2+'</span></div>'+
-        '<div class="team right '+(bWon?'win':'')+'">'+g.t2.map(function(id){return '<div class="p">'+esc(nameOf(id))+'</div>';}).join("")+'</div></div></div>';
-    });
-    return html+'</div>';
-  }
-  function analyst(){
-    if(state.games.length===0) return emptyHTML("No data to analyze yet","Record a few games and your daily match report will appear here.",null);
-    var dates=Object.keys(state.games.reduce(function(a,g){a[g.date]=1;return a;},{})).sort(function(a,b){return a<b?1:-1;});
-    if(!state._adate || dates.indexOf(state._adate)<0) state._adate=dates[0];
-    var rep=generateReport(state._adate);
-    var html='<div class="arep"><span class="l">Match report</span><select data-act="adate">'+dates.map(function(d){return '<option value="'+d+'" '+(d===state._adate?'selected':'')+'>'+fullDate(d)+'</option>';}).join("")+'</select></div>';
-    html+='<div class="champ" style="margin-top:12px"><div class="blob"></div><div class="tag">📋 Daily Report</div><div class="name" style="margin-top:4px;font-size:20px">'+fullDate(rep.date)+'</div><div class="line tnum">'+esc(rep.headline)+'</div></div>';
-    html+='<div class="rows">'+rep.cards.map(function(c){return '<div class="acard"><span class="ai">'+c.i+'</span><div><div class="at">'+esc(c.t)+'</div><div class="ab">'+esc(c.b)+'</div></div></div>';}).join("")+'</div>';
-    html+='<div class="note">Generated from your recorded scores</div>';
-    return html;
-  }
+
   function playersScreen(ap){
     var html='<div class="addrow"><input id="newPlayer" placeholder="Add a player&hellip;" /><button data-act="addplayer">Add</button></div>';
-    if(ap.length===0){ html+=emptyHTML("No players yet","Add everyone who shows up to play. You need at least 4 to record a doubles game.",null); }
+    if(ap.length===0){ html+=emptyHTML("👥","No players yet","Add everyone who shows up to play. You need at least 4 to record a doubles game.",null); }
     else { html+='<div class="rows" style="margin-top:16px">';
       ap.forEach(function(p){ var has=state.games.some(function(g){return g.t1.indexOf(p.id)>-1||g.t2.indexOf(p.id)>-1;});
         var act=has?'<button class="ghost" data-act="removeplayer" data-id="'+p.id+'">Remove</button>':'<button class="iconbtn" data-act="deleteplayer" data-id="'+p.id+'">&#128465;</button>';
-        html+='<div class="player"><div class="avatar">'+esc(p.name.charAt(0).toUpperCase())+'</div><div class="pn">'+esc(p.name)+'</div>'+act+'</div>';
-      });
+        html+='<div class="player"><div class="avatar">'+esc(p.name.charAt(0).toUpperCase())+'</div><div class="pn">'+esc(p.name)+'</div>'+act+'</div>'; });
       html+='</div>';
     }
     var rem=removedPlayers();
     if(rem.length>0){ html+='<div style="margin-top:20px"><button class="ghost" data-act="togglerem">'+(state.showRemoved?"Hide":"Show")+' removed players ('+rem.length+')</button>';
       if(state.showRemoved){ html+='<div class="rows" style="margin-top:8px">'+rem.map(function(p){return '<div class="removed"><div class="pn">'+esc(p.name)+'</div><button class="restore" data-act="restoreplayer" data-id="'+p.id+'">&#8634; Restore</button></div>';}).join("")+'</div>'; }
-      html+='</div>';
-    }
+      html+='</div>'; }
     return html+'<div class="note" style="text-align:left;margin-top:20px">Removed players stay on past leaderboards but won\'t appear when recording new games.</div>';
   }
-  function emptyHTML(t,b,cta){ return '<div class="empty"><div class="ic"><span></span></div><h3>'+esc(t)+'</h3><p>'+esc(b)+'</p>'+(cta?'<button class="cta" data-act="opennew">'+esc(cta)+'</button>':'')+'</div>'; }
+  function emptyHTML(ic,t,b,cta){ return '<div class="empty"><div class="ec">'+ic+'</div><h3>'+esc(t)+'</h3><p>'+esc(b)+'</p>'+(cta?'<button class="cta" data-act="opennew">'+esc(cta)+'</button>':'')+'</div>'; }
   function nav(ap){ var can=ap.length>=4;
     return '<nav><button class="navbtn '+(state.tab==="board"?'on':'')+'" data-act="tab" data-tab="board"><span class="ni">🏆</span>Leaderboard</button>'+
       '<button class="fab" data-act="opennew" '+(can?'':'disabled')+'>+</button>'+
@@ -483,41 +434,39 @@
     var distinct=new Set(chosen).size===chosen.length; var complete=chosen.length===4&&distinct;
     function opts(sv){ var o='<option value="">Player</option>'; ap.forEach(function(p){ var used=picks.indexOf(p.id)>-1&&p.id!==sv; if(!used)o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
     function tbox(label,tint,ka,va,kb,vb){ return '<div class="tbox '+tint+'"><div class="lab"><span class="dot"></span>'+label+'</div><select class="psel" data-act="pick" data-slot="'+ka+'">'+opts(va)+'</select><div class="gap"></div><select class="psel" data-act="pick" data-slot="'+kb+'">'+opts(vb)+'</select></div>'; }
-    function sbox(label,tint,key,val){ return '<div class="stepbox"><div class="lab">'+label+'</div><div class="stepper"><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="-1">&minus;</button><div class="stepval '+tint+' tnum">'+val+'</div><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="1">+</button></div></div>'; }
-    return '<div class="overlay" data-act="overlay"><div class="sheet" data-stop="1"><div class="grab"></div>'+
-      '<div class="shead"><h2>Record a game</h2><button class="closeb" data-act="closenew">&times;</button></div>'+
+    function sbox(label,key,val){ return '<div class="stepbox"><div class="lab">'+label+'</div><div class="stepper"><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="-1">&minus;</button><div class="stepval tnum">'+val+'</div><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="1">+</button></div></div>'; }
+    return '<div class="overlay" data-act="bg"><div class="sheet"><div class="grab"></div>'+
+      '<div class="shead"><h2>🎾 Record game</h2><button class="closeb" data-act="closenew">&times;</button></div>'+
       '<div class="two">'+tbox("Team A","teal","t1a",d.t1a,"t1b",d.t1b)+tbox("Team B","lime","t2a",d.t2a,"t2b",d.t2b)+'</div>'+
-      '<div class="two">'+sbox("Team A score","teal","s1",d.s1)+sbox("Team B score","lime","s2",d.s2)+'</div>'+
-      '<div class="datebox"><span class="dl">📅 Date</span><input type="date" id="gameDate" value="'+d.date+'" data-act="setdate" /></div>'+
+      '<div class="two">'+sbox("Team A score","s1",d.s1)+sbox("Team B score","s2",d.s2)+'</div>'+
+      '<div class="datebox"><span class="dl">📅 Date</span><input type="date" value="'+d.date+'" data-act="setdate" /></div>'+
       ((!distinct&&chosen.length>0)?'<div class="warn">Each player can only be picked once.</div>':'')+
       '<button class="save" data-act="savegame" '+(complete?'':'disabled')+'>Save game</button></div></div>';
   }
 
-  /* ====== Events ====== */
   function wire(){
     document.querySelectorAll("[data-act]").forEach(function(el){
       var act=el.getAttribute("data-act");
-      if(act==="hpick"){ el.addEventListener("change",function(e){ state[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
-      if(act==="setday"){ el.addEventListener("change",function(e){ state.view.day=e.target.value||null; if(state.view.day) state.view.allTime=false; render(); }); return; }
       if(act==="pick"){ el.addEventListener("change",function(e){ state.draft[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
+      if(act==="hpick"){ el.addEventListener("change",function(e){ state[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
       if(act==="setdate"){ el.addEventListener("change",function(e){ state.draft.date=e.target.value; }); return; }
+      if(act==="setday"){ el.addEventListener("change",function(e){ state.view.day=e.target.value||null; if(state.view.day) state.view.allTime=false; render(); }); return; }
       if(act==="adate"){ el.addEventListener("change",function(e){ state._adate=e.target.value; render(); }); return; }
       el.addEventListener("click",onClick);
     });
     var np=document.getElementById("newPlayer"); if(np){ np.addEventListener("keydown",function(e){ if(e.key==="Enter") addPlayer(); }); }
   }
-  function onClick(e){
-    var el=e.currentTarget, a=el.getAttribute("data-act");
+  function onClick(e){ var el=e.currentTarget, a=el.getAttribute("data-act");
     if(a==="tab"){ state.tab=el.getAttribute("data-tab"); state.confirmDelete=null; render(); }
     else if(a==="ttab"){ var t=el.getAttribute("data-t"); state.tab=(state.tab===t?"board":t); state.confirmDelete=null; render(); }
     else if(a==="mode"){ state.boardMode=el.getAttribute("data-mode"); render(); }
+    else if(a==="hmode"){ state.hMode=el.getAttribute("data-m"); render(); }
     else if(a==="month"){ stepMonth(+el.getAttribute("data-dir")); }
     else if(a==="alltime"){ state.view.allTime=!state.view.allTime; state.view.day=null; render(); }
     else if(a==="clearday"){ state.view.day=null; render(); }
-    else if(a==="hmode"){ state.hMode=el.getAttribute("data-m"); render(); }
     else if(a==="opennew"){ openNew(); }
     else if(a==="closenew"){ state.showNew=false; state.draft=null; render(); }
-    else if(a==="overlay"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
+    else if(a==="bg"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
     else if(a==="savegame"){ saveGame(); }
     else if(a==="step"){ var k=el.getAttribute("data-key"); state.draft[k]=Math.max(0,(+state.draft[k])+(+el.getAttribute("data-d"))); render(); }
     else if(a==="addplayer"){ addPlayer(); }
@@ -526,7 +475,7 @@
     else if(a==="deleteplayer"){ state.players=state.players.filter(function(p){return p.id!==el.getAttribute("data-id");}); commit(); }
     else if(a==="togglerem"){ state.showRemoved=!state.showRemoved; render(); }
     else if(a==="askdel"){ state.confirmDelete=el.getAttribute("data-id"); render(); }
-    else if(a==="cancindel"){ state.confirmDelete=null; render(); }
+    else if(a==="cancel"){ state.confirmDelete=null; render(); }
     else if(a==="delgame"){ state.games=state.games.filter(function(g){return g.id!==el.getAttribute("data-id");}); state.confirmDelete=null; commit(); }
   }
   function stepMonth(dir){ if(state.view.day){ state.view.day=null; render(); return; } if(state.view.allTime){ state.view.allTime=false; render(); return; } var m=state.view.month+dir,y=state.view.year; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.view.month=m; state.view.year=y; render(); }
@@ -538,20 +487,12 @@
     state.players.push({id:uid(),name:clean,active:true}); commit(); }
   function setActive(id,val){ var p=state.players.find(function(x){return x.id===id;}); if(p)p.active=val; commit(); }
 
-  /* ====== Boot + live refresh ====== */
-  function boot(){
-    loadState().then(function(s){ state.players=s.players; state.games=s.games; state.sync="synced"; render(); })
-      .catch(function(){ state.sync="offline"; render(); });
-  }
-  setInterval(function(){
-    if(savingFlight||pendingSave||state.showNew) return;
-    loadState().then(function(s){
-      var changed = JSON.stringify(s.players)!==JSON.stringify(state.players) || JSON.stringify(s.games)!==JSON.stringify(state.games);
-      state.players=s.players; state.games=s.games;
-      if(state.sync==="offline") state.sync="synced";
-      if(changed) render(); else updateSync();
-    }).catch(function(){ state.sync="offline"; updateSync(); });
-  }, 5000);
+  function boot(){ loadState().then(function(s){ state.players=s.players; state.games=s.games; state.sync="synced"; render(); })
+    .catch(function(){ state.sync="offline"; render(); }); }
+  setInterval(function(){ if(savingFlight||pendingSave||state.showNew) return;
+    loadState().then(function(s){ var ch=JSON.stringify(s.players)!==JSON.stringify(state.players)||JSON.stringify(s.games)!==JSON.stringify(state.games);
+      state.players=s.players; state.games=s.games; if(state.sync==="offline") state.sync="synced"; if(ch) render(); else updateSync();
+    }).catch(function(){ state.sync="offline"; updateSync(); }); }, 5000);
 
   render(); boot();
 })();
