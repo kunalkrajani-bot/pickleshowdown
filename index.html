@@ -110,6 +110,15 @@
   .tbox .lab{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--s500); margin-bottom:8px; }
   .tbox .dot{ width:8px; height:8px; border-radius:50%; } .tbox.teal .dot{ background:var(--teal); } .tbox.lime .dot{ background:var(--lime); }
   select.psel{ width:100%; border-radius:8px; border:1px solid var(--s200); background:#fff; padding:8px 10px; font-size:14px; outline:none; } .gap{ height:8px; }
+  .pinput{ width:100%; border-radius:8px; border:1px solid var(--s200); background:#fff; padding:9px 10px; font-size:14px; outline:none; font-family:inherit; }
+  .pinput:focus{ border-color:var(--teal); }
+  .pinput.chosen{ background:var(--ccf); border-color:var(--teal); font-weight:600; color:var(--tealD); }
+  .sugg{ margin-top:4px; display:flex; flex-wrap:wrap; gap:4px; }
+  .sugg button{ border:1px solid var(--s200); background:#fff; border-radius:999px; padding:4px 10px; font-size:12px; color:var(--s700); }
+  .sugg button:active{ background:var(--ccf); }
+  .snum{ width:56px; text-align:center; font-size:22px; font-weight:800; color:var(--teal); border:1px solid var(--s200); border-radius:8px; padding:4px 0; outline:none; font-family:inherit; -moz-appearance:textfield; }
+  .snum:focus{ border-color:var(--teal); }
+  .snum::-webkit-outer-spin-button,.snum::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .stepbox{ border-radius:16px; border:1px solid var(--s200); padding:12px; } .stepbox .lab{ text-align:center; font-size:12px; font-weight:500; color:var(--s500); margin-bottom:8px; }
   .stepper{ display:flex; align-items:center; justify-content:space-between; } .stepbtn{ width:36px; height:36px; border-radius:8px; background:var(--s100); color:var(--s700); font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; }
   .stepval{ width:48px; text-align:center; font-size:24px; font-weight:800; color:var(--teal); }
@@ -336,6 +345,7 @@
     var html='<div class="arep"><span class="l">Match report</span><select data-act="adate">'+dates.map(function(d){return '<option value="'+d+'" '+(d===state._adate?'selected':'')+'>'+fullDate(d)+'</option>';}).join("")+'</select></div>';
     html+='<div class="champ" style="margin-top:12px"><div class="blob"></div><div class="tag">📋 Daily Report</div><div class="name" style="margin-top:4px;font-size:20px">'+fullDate(rep.date)+'</div><div class="line tnum">'+esc(rep.headline)+'</div></div>';
     html+='<div class="rows">'+rep.cards.map(function(c){return '<div class="acard"><span class="ai">'+c.i+'</span><div><div class="at">'+esc(c.t)+'</div><div class="ab">'+esc(c.b)+'</div></div></div>';}).join("")+'</div>';
+    html+='<button class="save" data-act="sharereport" style="margin-top:16px">📤 Share this report</button>';
     return html+'<div class="note">Generated from your recorded scores</div>';
   }
 
@@ -432,12 +442,27 @@
   function sheet(ap){
     var d=state.draft; var picks=[d.t1a,d.t1b,d.t2a,d.t2b]; var chosen=picks.filter(Boolean);
     var distinct=new Set(chosen).size===chosen.length; var complete=chosen.length===4&&distinct;
-    function opts(sv){ var o='<option value="">Player</option>'; ap.forEach(function(p){ var used=picks.indexOf(p.id)>-1&&p.id!==sv; if(!used)o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
-    function tbox(label,tint,ka,va,kb,vb){ return '<div class="tbox '+tint+'"><div class="lab"><span class="dot"></span>'+label+'</div><select class="psel" data-act="pick" data-slot="'+ka+'">'+opts(va)+'</select><div class="gap"></div><select class="psel" data-act="pick" data-slot="'+kb+'">'+opts(vb)+'</select></div>'; }
-    function sbox(label,key,val){ return '<div class="stepbox"><div class="lab">'+label+'</div><div class="stepper"><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="-1">&minus;</button><div class="stepval tnum">'+val+'</div><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="1">+</button></div></div>'; }
+    function slot(k){
+      var id=d[k]; var typed=(d._typed&&d._typed[k])||"";
+      if(id){ // chosen
+        return '<div class="pslot"><input class="pinput chosen" data-act="pclear" data-slot="'+k+'" value="'+esc(nameOf(id))+'" readonly /></div>';
+      }
+      // typing state: show matching suggestions from active players not already picked
+      var q=typed.trim().toLowerCase();
+      var avail=ap.filter(function(p){ return picks.indexOf(p.id)<0; });
+      var matches=avail.filter(function(p){ return !q || p.name.toLowerCase().indexOf(q)>-1; }).slice(0,6);
+      var exact=avail.some(function(p){ return p.name.toLowerCase()===q; });
+      var sug=matches.map(function(p){ return '<button data-act="ppick" data-slot="'+k+'" data-id="'+p.id+'">'+esc(p.name)+'</button>'; }).join("");
+      if(q && !exact) sug+='<button data-act="paddnew" data-slot="'+k+'" data-name="'+esc(typed.trim())+'" style="border-color:var(--teal);color:var(--teal)">+ Add \u201c'+esc(typed.trim())+'\u201d</button>';
+      return '<div class="pslot"><input class="pinput" data-act="ptype" data-slot="'+k+'" value="'+esc(typed)+'" placeholder="Type or 🎤 a name" autocomplete="off" />'+
+        (sug?'<div class="sugg">'+sug+'</div>':'')+'</div>';
+    }
+    function tbox(label,tint,ka,kb){ return '<div class="tbox '+tint+'"><div class="lab"><span class="dot"></span>'+label+'</div>'+slot(ka)+'<div class="gap"></div>'+slot(kb)+'</div>'; }
+    function sbox(label,key,val){ return '<div class="stepbox"><div class="lab">'+label+'</div><div class="stepper"><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="-1">&minus;</button><input class="snum tnum" type="number" inputmode="numeric" min="0" data-act="snum" data-key="'+key+'" value="'+val+'" /><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="1">+</button></div></div>'; }
     return '<div class="overlay" data-act="bg"><div class="sheet"><div class="grab"></div>'+
       '<div class="shead"><h2>🎾 Record game</h2><button class="closeb" data-act="closenew">&times;</button></div>'+
-      '<div class="two">'+tbox("Team A","teal","t1a",d.t1a,"t1b",d.t1b)+tbox("Team B","lime","t2a",d.t2a,"t2b",d.t2b)+'</div>'+
+      '<div class="note" style="text-align:left;margin-top:4px">Tip: tap a name box, then the 🎤 on your keyboard to speak the name.</div>'+
+      '<div class="two">'+tbox("Team A","teal","t1a","t1b")+tbox("Team B","lime","t2a","t2b")+'</div>'+
       '<div class="two">'+sbox("Team A score","s1",d.s1)+sbox("Team B score","s2",d.s2)+'</div>'+
       '<div class="datebox"><span class="dl">📅 Date</span><input type="date" value="'+d.date+'" data-act="setdate" /></div>'+
       ((!distinct&&chosen.length>0)?'<div class="warn">Each player can only be picked once.</div>':'')+
@@ -449,12 +474,30 @@
       var act=el.getAttribute("data-act");
       if(act==="pick"){ el.addEventListener("change",function(e){ state.draft[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
       if(act==="hpick"){ el.addEventListener("change",function(e){ state[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
+      if(act==="ptype"){ el.addEventListener("input",onNameType); return; }
+      if(act==="snum"){ el.addEventListener("input",function(e){ var k=e.target.getAttribute("data-key"); var v=parseInt(e.target.value,10); state.draft[k]=isNaN(v)?0:Math.max(0,v); }); return; }
       if(act==="setdate"){ el.addEventListener("change",function(e){ state.draft.date=e.target.value; }); return; }
       if(act==="setday"){ el.addEventListener("change",function(e){ state.view.day=e.target.value||null; if(state.view.day) state.view.allTime=false; render(); }); return; }
       if(act==="adate"){ el.addEventListener("change",function(e){ state._adate=e.target.value; render(); }); return; }
       el.addEventListener("click",onClick);
     });
     var np=document.getElementById("newPlayer"); if(np){ np.addEventListener("keydown",function(e){ if(e.key==="Enter") addPlayer(); }); }
+  }
+  // Update the suggestion chips under a name box WITHOUT a full re-render (keeps keyboard/dictation focus)
+  function onNameType(e){
+    var el=e.target, k=el.getAttribute("data-slot"), val=el.value;
+    if(!state.draft._typed) state.draft._typed={}; state.draft._typed[k]=val;
+    var picks=[state.draft.t1a,state.draft.t1b,state.draft.t2a,state.draft.t2b];
+    var q=val.trim().toLowerCase();
+    var ap=activePlayers();
+    var matches=ap.filter(function(p){ return picks.indexOf(p.id)<0 && (!q || p.name.toLowerCase().indexOf(q)>-1); }).slice(0,6);
+    var wrap=el.parentNode; var sug=wrap.querySelector(".sugg");
+    if(!sug){ sug=document.createElement("div"); sug.className="sugg"; wrap.appendChild(sug); }
+    var exact=ap.some(function(p){ return p.name.toLowerCase()===q; });
+    var htmlS=matches.map(function(p){ return '<button data-act="ppick" data-slot="'+k+'" data-id="'+p.id+'">'+esc(p.name)+'</button>'; }).join("");
+    if(q && !exact) htmlS+='<button data-act="paddnew" data-slot="'+k+'" data-name="'+esc(val.trim())+'" style="border-color:var(--teal);color:var(--teal)">+ Add \u201c'+esc(val.trim())+'\u201d</button>';
+    sug.innerHTML = htmlS;
+    sug.querySelectorAll("button").forEach(function(b){ b.addEventListener("click",onClick); });
   }
   function onClick(e){ var el=e.currentTarget, a=el.getAttribute("data-act");
     if(a==="tab"){ state.tab=el.getAttribute("data-tab"); state.confirmDelete=null; render(); }
@@ -469,6 +512,12 @@
     else if(a==="bg"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
     else if(a==="savegame"){ saveGame(); }
     else if(a==="step"){ var k=el.getAttribute("data-key"); state.draft[k]=Math.max(0,(+state.draft[k])+(+el.getAttribute("data-d"))); render(); }
+    else if(a==="ppick"){ var slot=el.getAttribute("data-slot"); state.draft[slot]=el.getAttribute("data-id"); if(state.draft._typed) state.draft._typed[slot]=""; render(); }
+    else if(a==="paddnew"){ var sl=el.getAttribute("data-slot"); var nm=el.getAttribute("data-name").trim(); if(!nm) return;
+      var ex=state.players.find(function(p){return p.active!==false&&p.name.toLowerCase()===nm.toLowerCase();});
+      var np; if(ex){ np=ex; } else { np={id:uid(),name:nm,active:true}; state.players.push(np); }
+      state.draft[sl]=np.id; if(state.draft._typed) state.draft._typed[sl]=""; commit(); }
+    else if(a==="pclear"){ var s2=el.getAttribute("data-slot"); state.draft[s2]=""; if(state.draft._typed) state.draft._typed[s2]=""; render(); }
     else if(a==="addplayer"){ addPlayer(); }
     else if(a==="removeplayer"){ setActive(el.getAttribute("data-id"),false); }
     else if(a==="restoreplayer"){ setActive(el.getAttribute("data-id"),true); }
