@@ -59,6 +59,20 @@
   .nm{ flex:1; min-width:0; } .nm .n{ font-weight:600; color:var(--s900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .nm .s{ font-size:11px; color:var(--s400); }
   .val{ text-align:right; line-height:1; } .val .v{ font-size:20px; font-weight:800; color:var(--teal); } .val .u{ font-size:9px; text-transform:uppercase; letter-spacing:.12em; color:var(--s400); }
   .note{ margin-top:16px; text-align:center; font-size:11px; color:var(--s400); }
+  .h2hpick{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; }
+  .h2hpick .vs{ font-size:13px; font-weight:800; color:var(--s400); }
+  .h2hscore{ display:flex; align-items:center; justify-content:center; gap:16px; margin-top:8px; }
+  .h2hside{ text-align:center; flex:1; min-width:0; }
+  .h2hside .hn{ font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .h2hside .hw{ font-size:44px; font-weight:800; line-height:1; margin-top:2px; }
+  .h2hmid{ font-size:26px; font-weight:800; color:var(--t100); }
+  .h2htable{ margin-top:12px; border:1px solid var(--s200); border-radius:16px; overflow:hidden; background:#fff; }
+  .h2hr{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:11px 14px; border-bottom:1px solid var(--s100); }
+  .h2hr:last-child{ border-bottom:none; }
+  .h2hr .hl{ font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--s400); padding:0 12px; white-space:nowrap; }
+  .h2hr .hv{ font-size:20px; font-weight:800; color:var(--s400); }
+  .h2hr .hv:first-child{ text-align:left; } .h2hr .hv:last-child{ text-align:right; }
+  .h2hr .hv.lead{ color:var(--teal); }
   .game{ border-radius:16px; border:1px solid var(--s200); background:#fff; padding:12px; }
   .gtop{ display:flex; align-items:center; justify-content:space-between; } .gdate{ font-size:11px; font-weight:500; color:var(--s400); }
   .gbody{ margin-top:6px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
@@ -141,7 +155,7 @@
   var now=new Date();
   var state={ players:[], games:[], tab:"board", boardMode:"points",
     view:{year:now.getFullYear(),month:now.getMonth(),allTime:false},
-    showNew:false, showRemoved:false, confirmDelete:null, draft:null, sync:"loading" };
+    showNew:false, showRemoved:false, confirmDelete:null, draft:null, sync:"loading", hA:"", hB:"", hMode:"opponents" };
   var savingFlight=false, pendingSave=null;
 
   function uid(){ return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8); }
@@ -267,7 +281,7 @@
     html+='</div>';
     return html;
   }
-  function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); return playersScreen(ap); }
+  function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); if(state.tab==="h2h")return h2hScreen(); return playersScreen(ap); }
   function leaderboard(ap){
     var gs=monthGames(); var mode=state.boardMode;
     var isWins=mode==="wins", isPct=mode==="winpct", isAvg=mode==="avg";
@@ -309,10 +323,107 @@
     html+='</div><div class="note">Ranked by '+rankedBy+' &middot; '+gs.length+' game'+(gs.length===1?'':'s')+' this period</div>';
     return html+nearlyNote(nearly);
   }
-  function nearlyNote(nearly){
-    if(!nearly||!nearly.length) return "";
-    var names=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+QUAL_MIN+")";}).join(", ");
-    return '<div class="note" style="margin-top:8px">Almost qualified: '+names+'</div>';
+  function h2h(idA, idB){
+    // games where A and B were on OPPOSITE teams
+    var res={ games:0, aWins:0, bWins:0, aPts:0, bPts:0, list:[] };
+    state.games.forEach(function(g){
+      var aOn1=g.t1.indexOf(idA)>-1, aOn2=g.t2.indexOf(idA)>-1;
+      var bOn1=g.t1.indexOf(idB)>-1, bOn2=g.t2.indexOf(idB)>-1;
+      var opposed=(aOn1&&bOn2)||(aOn2&&bOn1);
+      if(!opposed) return;
+      var s1=+g.s1, s2=+g.s2;
+      var aScore=aOn1?s1:s2, bScore=bOn1?s1:s2;
+      res.games++; res.aPts+=aScore; res.bPts+=bScore;
+      if(aScore>bScore) res.aWins++; else if(bScore>aScore) res.bWins++;
+      res.list.push({date:g.date, aScore:aScore, bScore:bScore});
+    });
+    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
+    return res;
+  }
+  function duo(idA, idB){
+    // games where A and B were on the SAME team
+    var res={ games:0, wins:0, losses:0, pf:0, pa:0, list:[] };
+    state.games.forEach(function(g){
+      var both1=g.t1.indexOf(idA)>-1 && g.t1.indexOf(idB)>-1;
+      var both2=g.t2.indexOf(idA)>-1 && g.t2.indexOf(idB)>-1;
+      if(!both1 && !both2) return;
+      var s1=+g.s1, s2=+g.s2;
+      var us=both1?s1:s2, them=both1?s2:s1;
+      res.games++; res.pf+=us; res.pa+=them;
+      if(us>them) res.wins++; else if(them>us) res.losses++;
+      var oppIds=both1?g.t2:g.t1;
+      res.list.push({date:g.date, us:us, them:them, opp:oppIds.map(nameOf).join(" & ")});
+    });
+    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
+    return res;
+  }
+
+  function h2hScreen(){
+    var ap=activePlayers();
+    if(ap.length<2) return emptyHTML("🆚","Need two players","Add at least two players, then pick two to compare them head to head or as partners.");
+    if(!state.hA||!ap.some(function(p){return p.id===state.hA;})) state.hA="";
+    if(!state.hB||!ap.some(function(p){return p.id===state.hB;})) state.hB="";
+    if(state.hMode!=="partners") state.hMode="opponents";
+    function opts(sv,skip){ var o='<option value="">Select</option>'; ap.forEach(function(p){ if(skip&&p.id===skip)return; o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
+    var html='<div class="h2hpick"><select class="psel" data-act="hpick" data-slot="hA">'+opts(state.hA,state.hB)+'</select>'+
+      '<div class="vs">&amp;</div><select class="psel" data-act="hpick" data-slot="hB">'+opts(state.hB,state.hA)+'</select></div>';
+    var isP=state.hMode==="partners";
+    html+='<div class="toggle" style="grid-template-columns:1fr 1fr"><button class="'+(!isP?'on':'')+'" data-act="hmode" data-m="opponents">🆚 Opponents</button><button class="'+(isP?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button></div>';
+    if(!state.hA||!state.hB) return html+emptyHTML(isP?"🤝":"🆚","Pick two players", isP?"Choose two players to see their record as a team — games, wins, and win % when they played together.":"Choose two players to see their head-to-head record when they played against each other.");
+
+    var A=nameOf(state.hA), B=nameOf(state.hB);
+    return html + (isP ? partnersView(A,B) : opponentsView(A,B));
+  }
+  function opponentsView(A,B){
+    var r=h2h(state.hA,state.hB);
+    if(r.games===0) return emptyHTML("🤷","No matchups yet",esc(A)+" and "+esc(B)+" haven't played on opposite teams yet.");
+    var aPct=Math.round((r.aWins/r.games)*100), bPct=Math.round((r.bWins/r.games)*100);
+    var lead = r.aWins>r.bWins?A:(r.bWins>r.aWins?B:null);
+    var html='<div class="champ" style="margin-top:12px"><div class="blob"></div>'+
+      '<div class="tag">🆚 Head to head · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
+      '<div class="h2hscore"><div class="h2hside"><div class="hn">'+esc(A)+'</div><div class="hw tnum">'+r.aWins+'</div></div>'+
+      '<div class="h2hmid">–</div><div class="h2hside"><div class="hn">'+esc(B)+'</div><div class="hw tnum">'+r.bWins+'</div></div></div>'+
+      '<div class="line" style="text-align:center">'+(lead?esc(lead)+" leads the series":"All square")+'</div></div>';
+    html+='<div class="h2htable">'+
+      h2hRow("Wins", r.aWins, r.bWins, r.aWins>=r.bWins, r.bWins>=r.aWins)+
+      h2hRow("Win %", aPct+"%", bPct+"%", r.aWins>=r.bWins, r.bWins>=r.aWins)+
+      h2hRow("Total points", r.aPts, r.bPts, r.aPts>=r.bPts, r.bPts>=r.aPts)+'</div>';
+    html+='<div class="note" style="margin-top:16px;text-align:left">Recent meetings</div><div class="rows" style="margin-top:8px">';
+    r.list.slice(0,10).forEach(function(m){ var aWon=m.aScore>m.bScore, bWon=m.bScore>m.aScore;
+      html+='<div class="game"><div class="gbody">'+
+        '<div class="team '+(aWon?'win':'')+'"><div class="p">'+esc(A)+'</div></div>'+
+        '<div class="score"><span class="sc '+(aWon?'win':'')+' tnum">'+m.aScore+'</span><span class="dash">&ndash;</span><span class="sc '+(bWon?'win':'')+' tnum">'+m.bScore+'</span></div>'+
+        '<div class="team right '+(bWon?'win':'')+'"><div class="p">'+esc(B)+'</div></div></div>'+
+        '<div class="gdate" style="margin-top:6px;text-align:center">'+fmtDate(m.date)+'</div></div>';
+    });
+    return html+'</div>';
+  }
+  function partnersView(A,B){
+    var r=duo(state.hA,state.hB);
+    if(r.games===0) return emptyHTML("🤷","Never partnered",esc(A)+" and "+esc(B)+" haven't played on the same team yet.");
+    var pct=Math.round((r.wins/r.games)*100), diff=r.pf-r.pa;
+    var html='<div class="champ" style="margin-top:12px"><div class="blob"></div>'+
+      '<div class="tag">🤝 As partners · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
+      '<div class="fe"><div class="name" style="font-size:20px">'+esc(A)+' &amp; '+esc(B)+'</div>'+
+      '<div style="text-align:right"><div class="big tnum">'+pct+'%</div><div class="unit">win rate</div></div></div>'+
+      '<div class="line tnum">'+r.wins+'W '+r.losses+'L · '+r.pf+' pts for · '+(diff>=0?"+":"")+diff+' diff</div></div>';
+    html+='<div class="h2htable">'+
+      '<div class="h2hr"><div class="hv lead tnum">'+r.wins+'</div><div class="hl">Wins together</div><div class="hv tnum">'+r.losses+'</div></div>'+
+      '<div class="h2hr"><div class="hv lead tnum">'+pct+'%</div><div class="hl">Win rate</div><div class="hv tnum">'+r.games+'</div></div>'+
+      '</div>'+
+      '<div class="note" style="text-align:left;margin-top:6px">Left: wins / win rate · Right: losses / games played</div>';
+    html+='<div class="note" style="margin-top:16px;text-align:left">Games together</div><div class="rows" style="margin-top:8px">';
+    r.list.slice(0,10).forEach(function(m){ var won=m.us>m.them, lost=m.them>m.us;
+      html+='<div class="game"><div class="gbody">'+
+        '<div class="team '+(won?'win':'')+'"><div class="p">'+esc(A)+' &amp; '+esc(B)+'</div></div>'+
+        '<div class="score"><span class="sc '+(won?'win':'')+' tnum">'+m.us+'</span><span class="dash">&ndash;</span><span class="sc '+(lost?'win':'')+' tnum">'+m.them+'</span></div>'+
+        '<div class="team right '+(lost?'win':'')+'"><div class="p">'+esc(m.opp)+'</div></div></div>'+
+        '<div class="gdate" style="margin-top:6px;text-align:center">'+fmtDate(m.date)+'</div></div>';
+    });
+    return html+'</div>';
+  }
+  function h2hRow(label, av, bv, aLead, bLead){
+    return '<div class="h2hr"><div class="hv '+(aLead?'lead':'')+' tnum">'+av+'</div><div class="hl">'+label+'</div><div class="hv '+(bLead?'lead':'')+' tnum">'+bv+'</div></div>';
   }
   function gamesList(){
     var games=monthGames().slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
@@ -363,7 +474,8 @@
       '<button class="navbtn '+(state.tab==="players"?'on':'')+'" data-act="tab" data-tab="players"><span class="ni">👥</span>Players</button></nav>';
   }
   function histPills(){
-    return '<div class="histwrap"><button class="pill '+(state.tab==="games"?'on':'')+'" data-act="ttab" data-t="games">☰ Game history</button>'+
+    return '<div class="histwrap"><button class="pill '+(state.tab==="games"?'on':'')+'" data-act="ttab" data-t="games">☰ Games</button>'+
+      '<button class="pill '+(state.tab==="h2h"?'on':'')+'" data-act="ttab" data-t="h2h">🆚 H2H</button>'+
       '<button class="pill '+(state.tab==="report"?'on':'')+'" data-act="ttab" data-t="report">📋 Analyst</button></div>';
   }
   function sheet(ap){
@@ -385,6 +497,7 @@
   function wire(){
     document.querySelectorAll("[data-act]").forEach(function(el){
       var act=el.getAttribute("data-act");
+      if(act==="hpick"){ el.addEventListener("change",function(e){ state[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
       if(act==="setday"){ el.addEventListener("change",function(e){ state.view.day=e.target.value||null; if(state.view.day) state.view.allTime=false; render(); }); return; }
       if(act==="pick"){ el.addEventListener("change",function(e){ state.draft[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
       if(act==="setdate"){ el.addEventListener("change",function(e){ state.draft.date=e.target.value; }); return; }
@@ -401,6 +514,7 @@
     else if(a==="month"){ stepMonth(+el.getAttribute("data-dir")); }
     else if(a==="alltime"){ state.view.allTime=!state.view.allTime; state.view.day=null; render(); }
     else if(a==="clearday"){ state.view.day=null; render(); }
+    else if(a==="hmode"){ state.hMode=el.getAttribute("data-m"); render(); }
     else if(a==="opennew"){ openNew(); }
     else if(a==="closenew"){ state.showNew=false; state.draft=null; render(); }
     else if(a==="overlay"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
