@@ -239,7 +239,6 @@
   }
   function pairKey(a,b){ return [a,b].sort().join("|"); }
   function pairVs(p1a,p1b,p2a,p2b){
-    // games where {p1a,p1b} faced {p2a,p2b} (order-independent)
     var k1=pairKey(p1a,p1b), k2=pairKey(p2a,p2b);
     var res={ games:0, w1:0, w2:0, pts1:0, pts2:0, list:[] };
     state.games.forEach(function(g){
@@ -370,6 +369,7 @@
     if(!cards.length) return "";
     return '<div class="awards"><div class="awt">🏅 Awards this period</div><div class="awgrid">'+
       cards.map(function(c){ return '<div class="awc"><div class="awi">'+c.i+'</div><div class="awl">'+c.t+'</div><div class="awn">'+c.n+'</div><div class="awd">'+c.d+'</div></div>'; }).join("")+'</div></div>';
+  }
   function formDots(id){
     var seq=[];
     var ord=state.games.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
@@ -381,6 +381,7 @@
     if(!last.length) return "";
     return '<span class="form">'+last.map(function(r){ return '<span class="fd '+(r==="W"?"w":r==="L"?"l":"t")+'"></span>'; }).join("")+'</span>';
   }
+  function nearlyNote(nearly){
     if(!nearly||!nearly.length) return "";
     var names=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+QUAL_MIN+")";}).join(", ");
     return '<div class="note" style="margin-top:8px">Almost qualified: '+names+'</div>';
@@ -424,7 +425,6 @@
       '<button class="'+(mode==="partners"?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button>'+
       '<button class="'+(mode==="pairs"?'on':'')+'" data-act="hmode" data-m="pairs">👥 Pairs</button></div>';
     if(mode==="pairs") return html+pairsUI(ap);
-    // 1v1 and partners: two pickers
     function opts(sv,skip){ var o='<option value="">Select</option>'; ap.forEach(function(p){ if(skip&&p.id===skip)return; o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
     html+='<div class="h2hpick" style="margin-top:10px"><select class="psel pinput" data-act="hpick" data-slot="hA">'+opts(state.hA,state.hB)+'</select>'+
       '<div class="vs">'+(mode==="partners"?"&amp;":"vs")+'</div><select class="psel pinput" data-act="hpick" data-slot="hB">'+opts(state.hB,state.hA)+'</select></div>';
@@ -575,6 +575,78 @@
       '<div class="datebox"><span class="dl">📅 Date</span><input type="date" value="'+d.date+'" data-act="setdate" /></div>'+
       ((!distinct&&chosen.length>0)?'<div class="warn">Each player can only be picked once.</div>':'')+
       '<button class="save" data-act="savegame" '+(complete?'':'disabled')+'>Save game</button></div></div>';
+  }
+
+  function skillScore(id){
+    var m = statsFor(state.games).find(function(r){ return r.id===id; });
+    if(!m || !m.g) return 0.5;
+    // Shrink toward 0.5 for players with few games, using QUAL_MIN as the
+    // "weight" of the prior — a brand new player starts at 0.5 and their
+    // record only fully counts once they've played QUAL_MIN games or more.
+    return (m.w + QUAL_MIN*0.5) / (m.g + QUAL_MIN);
+  }
+
+  function matchSheet(ap){
+    if(!state._present) state._present={};
+    var present = ap.filter(function(p){ return !!state._present[p.id]; });
+    var n = present.length;
+    var canGen = n>=4;
+    var chips = ap.map(function(p){
+      var on = !!state._present[p.id];
+      return '<button class="mchip '+(on?'on':'')+'" data-act="mtoggle" data-id="'+p.id+'">'+(emojiOf(p.id)?emojiOf(p.id)+' ':'')+esc(p.name)+'</button>';
+    }).join("");
+    var html='<div class="overlay" data-act="bgm"><div class="sheet"><div class="grab"></div>'+
+      '<div class="shead"><h2>🎲 Generate teams</h2><button class="closeb" data-act="closematch">&times;</button></div>'+
+      '<div class="note" style="text-align:left;margin-top:4px">Tap everyone who\u2019s here today, then generate courts.</div>';
+    if(!ap.length){
+      html+=emptyHTML("👥","No players yet","Add players first, then come back here to build today\u2019s courts.",null);
+    } else {
+      html+='<div class="mchips">'+chips+'</div>'+
+        '<div class="note" style="margin-top:10px">'+n+' player'+(n===1?'':'s')+' selected'+(canGen?'':' &middot; need at least 4')+'</div>'+
+        '<div class="two">'+
+          '<button class="save" data-act="genbalanced" style="margin-top:0" '+(canGen?'':'disabled')+'>&#9878;&#65039; Balanced</button>'+
+          '<button class="save" data-act="genrandom" style="margin-top:0;background:var(--s700)" '+(canGen?'':'disabled')+'>&#127922; Random</button>'+
+        '</div>';
+      if(state._teams && state._teams.length){
+        html+='<div class="teamsout">';
+        state._teams.forEach(function(court,i){
+          html+='<div class="tcard"><div class="tct">Court '+(i+1)+'</div>'+
+            '<div class="tside">'+esc(court[0].map(nameOf).join(" & "))+'</div>'+
+            '<div class="tvs">vs</div>'+
+            '<div class="tside">'+esc(court[1].map(nameOf).join(" & "))+'</div></div>';
+        });
+        html+='</div>';
+        if(state._sitout && state._sitout.length){
+          html+='<div class="note" style="margin-top:10px">Sitting out: '+esc(state._sitout.map(nameOf).join(", "))+'</div>';
+        }
+      }
+    }
+    html+='</div></div>';
+    return html;
+  }
+
+  function genTeams(balanced){
+    var ap=activePlayers();
+    var present=ap.filter(function(p){ return state._present && state._present[p.id]; });
+    if(present.length<4) return;
+    var arr=present.slice();
+    if(balanced){
+      arr.forEach(function(p){ p._skill=skillScore(p.id); });
+      arr.sort(function(a,b){ return b._skill-a._skill; });
+    } else {
+      for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    }
+    var courts=[]; var idx=0;
+    while(arr.length-idx>=4){
+      var chunk=arr.slice(idx,idx+4); idx+=4;
+      var t1,t2;
+      if(balanced){ t1=[chunk[0].id,chunk[3].id]; t2=[chunk[1].id,chunk[2].id]; }
+      else { t1=[chunk[0].id,chunk[1].id]; t2=[chunk[2].id,chunk[3].id]; }
+      courts.push([t1,t2]);
+    }
+    state._teams=courts;
+    state._sitout=arr.slice(idx).map(function(p){ return p.id; });
+    render();
   }
 
   function wire(){
