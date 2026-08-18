@@ -152,7 +152,7 @@
   var state={ players:[], games:[], tab:"board", boardMode:"points",
     view:{year:now.getFullYear(),month:now.getMonth(),allTime:false,day:null},
     showNew:false, showRemoved:false, confirmDelete:null, draft:null, sync:"loading",
-    hA:"", hB:"", hMode:"opponents" };
+    hA:"", hB:"", hMode:"opponents", p1a:"", p1b:"", p2a:"", p2b:"" };
   var savingFlight=false, pendingSave=null;
 
   function uid(){ return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8); }
@@ -210,6 +210,24 @@
       res.games++; res.aPts+=aScore; res.bPts+=bScore;
       if(aScore>bScore) res.aWins++; else if(bScore>aScore) res.bWins++;
       res.list.push({date:g.date, aScore:aScore, bScore:bScore});
+    });
+    res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
+    return res;
+  }
+  function pairKey(a,b){ return [a,b].sort().join("|"); }
+  function pairVs(p1a,p1b,p2a,p2b){
+    // games where {p1a,p1b} faced {p2a,p2b} (order-independent)
+    var k1=pairKey(p1a,p1b), k2=pairKey(p2a,p2b);
+    var res={ games:0, w1:0, w2:0, pts1:0, pts2:0, list:[] };
+    state.games.forEach(function(g){
+      var t1=pairKey(g.t1[0],g.t1[1]), t2=pairKey(g.t2[0],g.t2[1]);
+      var s1=+g.s1, s2=+g.s2, one, two;
+      if(t1===k1 && t2===k2){ one=s1; two=s2; }
+      else if(t1===k2 && t2===k1){ one=s2; two=s1; }
+      else return;
+      res.games++; res.pts1+=one; res.pts2+=two;
+      if(one>two) res.w1++; else if(two>one) res.w2++;
+      res.list.push({date:g.date, s1:one, s2:two});
     });
     res.list.sort(function(x,y){ return x.date<y.date?1:x.date>y.date?-1:0; });
     return res;
@@ -345,18 +363,56 @@
 
   function h2hScreen(){
     var ap=activePlayers();
-    if(ap.length<2) return emptyHTML("🆚","Need two players","Add at least two players, then pick two to compare them head to head or as partners.");
-    if(!state.hA||!ap.some(function(p){return p.id===state.hA;})) state.hA="";
-    if(!state.hB||!ap.some(function(p){return p.id===state.hB;})) state.hB="";
-    if(state.hMode!=="partners") state.hMode="opponents";
+    if(ap.length<2) return emptyHTML("🆚","Need players","Add players, then compare them head to head, as partners, or pair vs pair.");
+    ["hA","hB","p1a","p1b","p2a","p2b"].forEach(function(s){ if(state[s] && !ap.some(function(p){return p.id===state[s];})) state[s]=""; });
+    if(["opponents","partners","pairs"].indexOf(state.hMode)<0) state.hMode="opponents";
+    var mode=state.hMode;
+    var html='<div class="toggle4" style="grid-template-columns:1fr 1fr 1fr">'+
+      '<button class="'+(mode==="opponents"?'on':'')+'" data-act="hmode" data-m="opponents">🆚 1v1</button>'+
+      '<button class="'+(mode==="partners"?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button>'+
+      '<button class="'+(mode==="pairs"?'on':'')+'" data-act="hmode" data-m="pairs">👥 Pairs</button></div>';
+    if(mode==="pairs") return html+pairsUI(ap);
+    // 1v1 and partners: two pickers
     function opts(sv,skip){ var o='<option value="">Select</option>'; ap.forEach(function(p){ if(skip&&p.id===skip)return; o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
-    var isP=state.hMode==="partners";
-    var html='<div class="h2hpick"><select class="psel pinput" data-act="hpick" data-slot="hA">'+opts(state.hA,state.hB)+'</select>'+
-      '<div class="vs">'+(isP?"&amp;":"vs")+'</div><select class="psel pinput" data-act="hpick" data-slot="hB">'+opts(state.hB,state.hA)+'</select></div>';
-    html+='<div class="toggle"><button class="'+(!isP?'on':'')+'" data-act="hmode" data-m="opponents">🆚 Opponents</button><button class="'+(isP?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button></div>';
-    if(!state.hA||!state.hB) return html+emptyHTML(isP?"🤝":"🆚","Pick two players", isP?"Choose two players to see their record as a team.":"Choose two players to see their head-to-head record.");
+    html+='<div class="h2hpick" style="margin-top:10px"><select class="psel pinput" data-act="hpick" data-slot="hA">'+opts(state.hA,state.hB)+'</select>'+
+      '<div class="vs">'+(mode==="partners"?"&amp;":"vs")+'</div><select class="psel pinput" data-act="hpick" data-slot="hB">'+opts(state.hB,state.hA)+'</select></div>';
+    if(!state.hA||!state.hB) return html+emptyHTML(mode==="partners"?"🤝":"🆚","Pick two players", mode==="partners"?"See their record as a team.":"See their head-to-head record.");
     var A=nameOf(state.hA), B=nameOf(state.hB);
-    return html + (isP ? partnersView(A,B) : opponentsView(A,B));
+    return html + (mode==="partners" ? partnersView(A,B) : opponentsView(A,B));
+  }
+  function pairsUI(ap){
+    var used=[state.p1a,state.p1b,state.p2a,state.p2b];
+    function opts(sv){ var o='<option value="">Select</option>'; ap.forEach(function(p){ var taken=used.indexOf(p.id)>-1 && p.id!==sv; if(!taken) o+='<option value="'+p.id+'" '+(sv===p.id?'selected':'')+'>'+esc(p.name)+'</option>'; }); return o; }
+    var html='<div class="two" style="margin-top:10px">'+
+      '<div class="tbox teal"><div class="lab"><span class="dot"></span>Pair 1</div>'+
+        '<select class="psel pinput" data-act="hpick" data-slot="p1a">'+opts(state.p1a)+'</select><div class="gap"></div>'+
+        '<select class="psel pinput" data-act="hpick" data-slot="p1b">'+opts(state.p1b)+'</select></div>'+
+      '<div class="tbox lime"><div class="lab"><span class="dot"></span>Pair 2</div>'+
+        '<select class="psel pinput" data-act="hpick" data-slot="p2a">'+opts(state.p2a)+'</select><div class="gap"></div>'+
+        '<select class="psel pinput" data-act="hpick" data-slot="p2b">'+opts(state.p2b)+'</select></div></div>';
+    if(!state.p1a||!state.p1b||!state.p2a||!state.p2b) return html+emptyHTML("👥","Pick both pairs","Choose two players for each pair to see how the two teams stack up head to head.");
+    var A=nameOf(state.p1a)+" & "+nameOf(state.p1b), B=nameOf(state.p2a)+" & "+nameOf(state.p2b);
+    var r=pairVs(state.p1a,state.p1b,state.p2a,state.p2b);
+    if(r.games===0) return html+emptyHTML("🤷","No matchups yet","These two exact pairs haven't faced each other yet.");
+    var aPct=Math.round((r.w1/r.games)*100), bPct=Math.round((r.w2/r.games)*100);
+    var lead = r.w1>r.w2?A:(r.w2>r.w1?B:null);
+    html+='<div class="champ" style="margin-top:12px"><div class="blob"></div><div class="tag">👥 Pair vs pair · '+r.games+' game'+(r.games===1?'':'s')+'</div>'+
+      '<div class="h2hscore"><div class="h2hside"><div class="hn" style="font-size:13px">'+esc(A)+'</div><div class="hw tnum">'+r.w1+'</div></div>'+
+      '<div class="h2hmid">–</div><div class="h2hside"><div class="hn" style="font-size:13px">'+esc(B)+'</div><div class="hw tnum">'+r.w2+'</div></div></div>'+
+      '<div class="line" style="text-align:center">'+(lead?esc(lead)+" leads":"All square")+'</div></div>';
+    html+='<div class="h2htable">'+
+      h2hRow("Wins", r.w1, r.w2, r.w1>=r.w2, r.w2>=r.w1)+
+      h2hRow("Win %", aPct+"%", bPct+"%", r.w1>=r.w2, r.w2>=r.w1)+
+      h2hRow("Total points", r.pts1, r.pts2, r.pts1>=r.pts2, r.pts2>=r.pts1)+'</div>';
+    html+='<div class="note" style="margin-top:16px;text-align:left">Recent meetings</div><div class="rows" style="margin-top:8px">';
+    r.list.slice(0,10).forEach(function(m){ var aWon=m.s1>m.s2, bWon=m.s2>m.s1;
+      html+='<div class="game"><div class="gbody">'+
+        '<div class="team '+(aWon?'win':'')+'"><div class="p">'+esc(A)+'</div></div>'+
+        '<div class="score"><span class="sc '+(aWon?'win':'')+' tnum">'+m.s1+'</span><span class="dash">&ndash;</span><span class="sc '+(bWon?'win':'')+' tnum">'+m.s2+'</span></div>'+
+        '<div class="team right '+(bWon?'win':'')+'"><div class="p">'+esc(B)+'</div></div></div>'+
+        '<div class="gdate" style="margin-top:6px;text-align:center">'+fmtDate(m.date)+'</div></div>';
+    });
+    return html+'</div>';
   }
   function opponentsView(A,B){
     var r=h2h(state.hA,state.hB);
