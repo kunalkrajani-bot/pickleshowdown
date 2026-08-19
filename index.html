@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Early Morning Pickle Showdown</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Pickle Showdown" />
+<meta name="theme-color" content="#115e59" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <style>
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   :root{ --teal:#0f766e; --tealD:#115e59; --lime:#a3e635; --limeD:#84cc16;
@@ -13,7 +18,7 @@
   .wrap{ max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; background:var(--s50); position:relative; }
   .tnum{ font-variant-numeric:tabular-nums; }
   button{ font-family:inherit; cursor:pointer; border:none; background:none; }
-  .header{ padding:22px 20px 16px; background:var(--tealD); color:#fff; border-bottom-left-radius:24px; border-bottom-right-radius:24px; }
+  .header{ padding:calc(22px + env(safe-area-inset-top)) 20px 16px; background:var(--tealD); color:#fff; border-bottom-left-radius:24px; border-bottom-right-radius:24px; }
   .hrow{ display:flex; align-items:center; gap:8px; }
   .logo{ width:28px; height:28px; border-radius:50%; background:var(--lime); display:flex; align-items:center; justify-content:center; }
   .logo span{ width:12px; height:12px; border-radius:50%; background:var(--tealD); }
