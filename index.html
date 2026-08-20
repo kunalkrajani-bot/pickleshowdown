@@ -28,7 +28,7 @@
   .sync{ margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--t100); white-space:nowrap; }
   .sdot{ width:8px; height:8px; border-radius:50%; }
   .meta{ margin-top:4px; font-size:13px; color:var(--ccf); }
-  main{ flex:1; padding:16px 16px 110px; }
+  main{ flex:1; padding:16px 16px 150px; }
   .msw{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
   .circ{ width:36px; height:36px; border-radius:50%; background:#fff; border:1px solid var(--s200); color:var(--s500); display:flex; align-items:center; justify-content:center; font-size:18px; }
   .circ:disabled{ opacity:.3; }
@@ -128,8 +128,8 @@
   .navbtn .ni{ font-size:18px; line-height:1; } .navbtn.on{ color:var(--teal); }
   .fab{ margin-top:-28px; width:56px; height:56px; border-radius:50%; background:var(--lime); color:var(--tealD); display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 8px 16px rgba(0,0,0,.15); }
   .fab:disabled{ background:var(--s200); color:var(--s400); box-shadow:none; }
-  .histwrap{ position:sticky; bottom:68px; z-index:10; max-width:480px; margin:0 auto; width:100%; display:flex; justify-content:flex-start; gap:8px; pointer-events:none; overflow-x:auto; padding:0 16px; -webkit-overflow-scrolling:touch; }
-  .histwrap .pill{ pointer-events:auto; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,.05); margin-bottom:4px; }
+  .histwrap{ position:sticky; bottom:68px; z-index:15; max-width:480px; margin:0 auto; width:100%; display:flex; justify-content:flex-start; gap:8px; overflow-x:auto; padding:8px 16px; -webkit-overflow-scrolling:touch; background:rgba(248,250,252,.94); backdrop-filter:blur(6px); scroll-snap-type:x proximity; }
+  .histwrap .pill{ flex:0 0 auto; scroll-snap-align:start; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
   .overlay{ position:fixed; inset:0; z-index:50; display:flex; align-items:flex-end; justify-content:center; background:rgba(15,23,42,.4); }
   .sheet{ width:100%; max-width:480px; border-top-left-radius:24px; border-top-right-radius:24px; background:#fff; padding:20px; max-height:92vh; overflow-y:auto; }
   .grab{ margin:0 auto 12px; width:40px; height:4px; border-radius:999px; background:var(--s200); }
@@ -293,14 +293,17 @@
       var r1=(getR(g.t1[0])+getR(g.t1[1]))/2, r2=(getR(g.t2[0])+getR(g.t2[1]))/2;
       var e1=1/(1+Math.pow(10,(r2-r1)/400)), e2=1-e1;
       var s1=+g.s1, s2=+g.s2;
-      var a1=s1>s2?1:(s1<s2?0:0.5), a2=1-a1;
-      // Margin-of-victory multiplier: a 1-point nail-biter counts for 0.6x K,
-      // a 10+ point blowout counts for 1.5x K. Direction (win/loss) is unaffected
-      // by this — it only scales how much a given win/loss moves the rating.
-      var diff=Math.abs(s1-s2);
-      var mov=0.5+Math.min(diff,10)/10;
-      var Keff=K*mov;
-      var d1=Math.round(Keff*(a1-e1)), d2=Math.round(Keff*(a2-e2));
+      // Actual performance = share of total points won, not a flat win/loss.
+      // A 15-14 win scores ~0.52 (barely above a coin flip); a 15-3 win scores ~0.83.
+      var total=s1+s2;
+      var a1=total>0?s1/total:0.5, a2=1-a1;
+      var d1=K*(a1-e1), d2=K*(a2-e2);
+      // A win never lowers your rating (floors at 0 = "stayed the same") even if you
+      // underperformed the spread; the underdog can still gain rating on a narrow loss
+      // if they outperformed what their rating predicted.
+      if(s1>s2) d1=Math.max(0,d1);
+      if(s2>s1) d2=Math.max(0,d2);
+      d1=Math.round(d1); d2=Math.round(d2);
       g.t1.forEach(function(id){ ratings[id]=getR(id)+d1; (history[id]=history[id]||[]).push({date:g.date,delta:d1,after:ratings[id]}); });
       g.t2.forEach(function(id){ ratings[id]=getR(id)+d2; (history[id]=history[id]||[]).push({date:g.date,delta:d2,after:ratings[id]}); });
     });
@@ -752,8 +755,7 @@
   }
   function nav(ap){ var can=ap.length>=4;
     return '<nav><button class="navbtn '+(state.tab==="board"?'on':'')+'" data-act="tab" data-tab="board"><span class="ni">🏆</span>Leaderboard</button>'+
-      '<button class="fab" data-act="opennew" '+(can?'':'disabled')+'>+</button>'+
-      '<button class="navbtn '+(state.tab==="players"?'on':'')+'" data-act="tab" data-tab="players"><span class="ni">👥</span>Players</button></nav>';
+      '<button class="fab" data-act="opennew" '+(can?'':'disabled')+'>+</button></nav>';
   }
   function histPills(){
     return '<div class="histwrap"><button class="pill '+(state.tab==="games"?'on':'')+'" data-act="ttab" data-t="games">☰ Games</button>'+
@@ -761,7 +763,8 @@
       '<button class="pill" data-act="openmatch">🎲 Teams</button>'+
       '<button class="pill" data-act="openkotc">👑 KOTC</button>'+
       '<button class="pill '+(state.tab==="report"?'on':'')+'" data-act="ttab" data-t="report">📋 Analyst</button>'+
-      '<button class="pill '+(state.tab==="achievements"?'on':'')+'" data-act="ttab" data-t="achievements">🏅 Awards</button></div>';
+      '<button class="pill '+(state.tab==="achievements"?'on':'')+'" data-act="ttab" data-t="achievements">🏅 Awards</button>'+
+      '<button class="pill '+(state.tab==="players"?'on':'')+'" data-act="ttab" data-t="players">👥 Players</button></div>';
   }
 
   function sheet(ap){
