@@ -41,6 +41,9 @@
   .toggle4{ margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; background:var(--s100); border-radius:14px; padding:4px; }
   .toggle4 button{ border-radius:10px; padding:7px 2px; font-size:11px; font-weight:600; color:var(--s400); }
   .toggle4 button.on{ background:#fff; color:var(--teal); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .modes{ margin-top:12px; display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity; }
+  .modes button{ scroll-snap-align:start; flex:0 0 auto; white-space:nowrap; border-radius:999px; padding:8px 14px; font-size:12px; font-weight:600; color:var(--s500); background:var(--s100); }
+  .modes button.on{ background:var(--teal); color:#fff; }
   .dayrow{ margin-top:8px; display:flex; align-items:center; gap:8px; }
   .daypick{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--s200); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--s500); background:#fff; }
   .daypick input{ border:none; outline:none; background:transparent; font-size:12px; color:var(--s700); font-family:inherit; }
@@ -291,7 +294,13 @@
       var e1=1/(1+Math.pow(10,(r2-r1)/400)), e2=1-e1;
       var s1=+g.s1, s2=+g.s2;
       var a1=s1>s2?1:(s1<s2?0:0.5), a2=1-a1;
-      var d1=Math.round(K*(a1-e1)), d2=Math.round(K*(a2-e2));
+      // Margin-of-victory multiplier: a 1-point nail-biter counts for 0.6x K,
+      // a 10+ point blowout counts for 1.5x K. Direction (win/loss) is unaffected
+      // by this — it only scales how much a given win/loss moves the rating.
+      var diff=Math.abs(s1-s2);
+      var mov=0.5+Math.min(diff,10)/10;
+      var Keff=K*mov;
+      var d1=Math.round(Keff*(a1-e1)), d2=Math.round(Keff*(a2-e2));
       g.t1.forEach(function(id){ ratings[id]=getR(id)+d1; (history[id]=history[id]||[]).push({date:g.date,delta:d1,after:ratings[id]}); });
       g.t2.forEach(function(id){ ratings[id]=getR(id)+d2; (history[id]=history[id]||[]).push({date:g.date,delta:d2,after:ratings[id]}); });
     });
@@ -406,7 +415,7 @@
   function leaderboard(ap){
     var gs=monthGames(); var mode=state.boardMode;
     var isWins=mode==="wins", isPct=mode==="winpct", isAvg=mode==="avg", isRating=mode==="rating";
-    var modeToggle='<div class="toggle4" style="grid-template-columns:repeat(5,1fr)">'+
+    var modeToggle='<div class="modes">'+
       '<button class="'+(isRating?'on':'')+'" data-act="mode" data-mode="rating">Rating</button>'+
       '<button class="'+(mode==="points"?'on':'')+'" data-act="mode" data-mode="points">Points</button>'+
       '<button class="'+(isWins?'on':'')+'" data-act="mode" data-mode="wins">Wins</button>'+
@@ -540,7 +549,7 @@
     ["hA","hB","p1a","p1b","p2a","p2b"].forEach(function(s){ if(state[s] && !ap.some(function(p){return p.id===state[s];})) state[s]=""; });
     if(["opponents","partners","pairs"].indexOf(state.hMode)<0) state.hMode="opponents";
     var mode=state.hMode;
-    var html='<div class="toggle4" style="grid-template-columns:1fr 1fr 1fr">'+
+    var html='<div class="modes">'+
       '<button class="'+(mode==="opponents"?'on':'')+'" data-act="hmode" data-m="opponents">🆚 1v1</button>'+
       '<button class="'+(mode==="partners"?'on':'')+'" data-act="hmode" data-m="partners">🤝 Partners</button>'+
       '<button class="'+(mode==="pairs"?'on':'')+'" data-act="hmode" data-m="pairs">👥 Pairs</button></div>';
@@ -704,21 +713,28 @@
     if(!state.games.length) return emptyHTML("👑","No royalty yet","Play some games and your Day/Week/Month champions will be crowned here.",null);
     var period=state._achPeriod||"day";
     var pg=achievementPeriodGames(period);
-    var html='<div class="toggle4" style="grid-template-columns:1fr 1fr 1fr">'+
+    var html='<div class="modes">'+
       '<button class="'+(period==="day"?'on':'')+'" data-act="achperiod" data-p="day">Day</button>'+
       '<button class="'+(period==="week"?'on':'')+'" data-act="achperiod" data-p="week">Week</button>'+
       '<button class="'+(period==="month"?'on':'')+'" data-act="achperiod" data-p="month">Month</button></div>';
     html+='<div class="note" style="margin-top:8px">'+esc(pg.label)+' &middot; '+pg.games.length+' game'+(pg.games.length===1?'':'s')+'</div>';
-    var rk=ranked(pg.games,"wins");
+    var rk=ranked(pg.games,"winpct");
     if(!rk.length) return html+emptyHTML("👑","No games in this window","Play a few games and check back.",null);
+    var periodDates={}; pg.games.forEach(function(g){periodDates[g.date]=true;});
+    var comp=computeRatings();
+    function deltaFor(id){
+      var sum=0; (comp.history[id]||[]).forEach(function(h){ if(periodDates[h.date]) sum+=h.delta; });
+      return sum;
+    }
     var titleMap={day:"King of the Day",week:"King of the Week",month:"King of the Month"};
     var king=rk[0];
+    var kDelta=deltaFor(king.id);
     var badges=[];
     if(king.l===0 && king.g>=2) badges.push("💯 Undefeated");
     var wS=trailing(state.games,"W").find(function(s){return s.id===king.id;});
     if(wS && wS.streak>=3) badges.push("🔥 "+wS.streak+"-game streak");
     html+='<div class="royal" data-act="viewprofile" data-id="'+king.id+'"><div class="crown">👑</div><div class="rname">'+(emojiOf(king.id)?emojiOf(king.id)+" ":"")+esc(king.name)+'</div>'+
-      '<div class="rmeta tnum">'+titleMap[period]+' &middot; '+king.w+'W '+king.l+'L &middot; '+king.pf+' pts</div>';
+      '<div class="rmeta tnum">'+titleMap[period]+' &middot; '+pctStr(king)+' win rate &middot; '+king.w+'W '+king.l+'L &middot; rating '+(kDelta>=0?"+":"")+kDelta+'</div>';
     if(badges.length) html+='<div class="rbadges">'+badges.map(function(b){return '<span class="rbadge">'+b+'</span>';}).join("")+'</div>';
     html+='</div>';
     if(rk.length>1){
@@ -727,9 +743,10 @@
       items.push({r:rk[0],cls:"p1",medal:"🥇"});
       if(rk[2]) items.push({r:rk[2],cls:"p3",medal:"🥉"});
       html+='<div class="podium">'+items.map(function(it){
-        return '<div class="pcol '+it.cls+'" data-act="viewprofile" data-id="'+it.r.id+'"><div class="pm">'+it.medal+'</div><div class="pn">'+esc(it.r.name)+'</div><div class="pv tnum">'+it.r.w+'W &middot; '+it.r.pf+'pts</div></div>';
+        var d=deltaFor(it.r.id);
+        return '<div class="pcol '+it.cls+'" data-act="viewprofile" data-id="'+it.r.id+'"><div class="pm">'+it.medal+'</div><div class="pn">'+esc(it.r.name)+'</div><div class="pv tnum">'+pctStr(it.r)+' &middot; '+(d>=0?"+":"")+d+'</div></div>';
       }).join("")+'</div>';
-      html+='<div class="note" style="margin-top:16px">Tap a podium spot to view their profile</div>';
+      html+='<div class="note" style="margin-top:16px">Ranked by win % this period &middot; tap a spot to view a profile</div>';
     }
     return html;
   }
