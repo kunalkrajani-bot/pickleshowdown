@@ -7,15 +7,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Pickle Showdown" />
-<meta name="theme-color" content="#115e59" />
+<meta name="theme-color" content="#14322A" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="favicon.png" type="image/png" />
 <style>
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  :root{ --teal:#0f766e; --tealD:#115e59; --lime:#a3e635; --limeD:#84cc16;
-    --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;--s400:#94a3b8;
-    --s500:#64748b;--s700:#334155;--s800:#1e293b;--s900:#0f172a;--ccf:#ccfbf1;--t100:#99f6e4;}
+  :root{ --teal:#1B4332; --tealD:#14322A; --lime:#B8860B; --limeD:#96690A;
+    --s50:#FAF7F0;--s100:#F0EBDD;--s200:#e2e8f0;--s300:#cbd5e1;--s400:#94a3b8;
+    --s500:#64748b;--s700:#334155;--s800:#1e293b;--s900:#0f172a;--ccf:#D8E5DC;--t100:#BFE0CD;}
   body{ font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--s50); color:var(--s900); line-height:1.4; }
   .wrap{ max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; background:var(--s50); position:relative; }
   .tnum{ font-variant-numeric:tabular-nums; }
@@ -49,7 +49,7 @@
   .daypick input{ border:none; outline:none; background:transparent; font-size:12px; color:var(--s700); font-family:inherit; }
   .champ{ margin-top:12px; border-radius:16px; background:var(--tealD); color:#fff; padding:16px; position:relative; overflow:hidden; }
   .champ .blob{ position:absolute; right:-24px; top:-24px; width:96px; height:96px; border-radius:50%; background:rgba(163,230,53,.2); }
-  .champ .tag{ display:flex; align-items:center; gap:6px; color:#bef264; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
+  .champ .tag{ display:flex; align-items:center; gap:6px; color:#E8D5A3; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
   .champ .name{ font-size:24px; font-weight:800; letter-spacing:-.02em; }
   .champ .big{ font-size:30px; font-weight:800; line-height:1; }
   .champ .unit{ font-size:10px; text-transform:uppercase; letter-spacing:.12em; color:var(--t100); }
@@ -60,7 +60,7 @@
   .row.first{ border-color:#fde68a; background:#fffbeb; }
   .row.last{ border-color:#fecaca; background:#fef2f2; }
   .rank{ width:28px; height:28px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:var(--s100); color:var(--s500); }
-  .rank.g1{ background:#facc15; color:#713f12; } .rank.g2{ background:var(--s300); color:var(--s700); } .rank.g3{ background:#b45309; color:#fff; }
+  .rank.g1{ background:#D4AF37; color:#4A3B0A; } .rank.g2{ background:var(--s300); color:var(--s700); } .rank.g3{ background:#b45309; color:#fff; }
   .mood{ font-size:20px; line-height:1; flex:none; }
   .nm{ flex:1; min-width:0; } .nm .n{ font-weight:600; color:var(--s900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .nm .s{ font-size:11px; color:var(--s400); }
   .val{ text-align:right; line-height:1; } .val .v{ font-size:20px; font-weight:800; color:var(--teal); } .val .u{ font-size:9px; text-transform:uppercase; letter-spacing:.12em; color:var(--s400); }
@@ -135,7 +135,7 @@
   .grab{ margin:0 auto 12px; width:40px; height:4px; border-radius:999px; background:var(--s200); }
   .shead{ display:flex; align-items:center; justify-content:space-between; } .shead h2{ font-size:18px; font-weight:800; } .closeb{ color:var(--s400); font-size:20px; padding:4px; }
   .two{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
-  .tbox{ border-radius:16px; border:1px solid; padding:12px; } .tbox.teal{ border-color:#99f6e4; background:rgba(204,251,241,.4); } .tbox.lime{ border-color:#d9f99d; background:rgba(236,252,203,.4); }
+  .tbox{ border-radius:16px; border:1px solid; padding:12px; } .tbox.teal{ border-color:#BFE0CD; background:rgba(216,229,220,.5); } .tbox.lime{ border-color:#E3CE9A; background:rgba(232,213,163,.35); }
   .tbox .lab{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--s500); margin-bottom:8px; }
   .tbox .dot{ width:8px; height:8px; border-radius:50%; } .tbox.teal .dot{ background:var(--teal); } .tbox.lime .dot{ background:var(--lime); }
   .gap{ height:8px; }
@@ -1055,18 +1055,18 @@
       var headerH=430, footerH=90;
       var Ht=headerH; blocks.forEach(function(b){ Ht+=b.h+18; }); Ht+=footerH;
       var cv=document.createElement("canvas"); cv.width=W; cv.height=Ht; var x=cv.getContext("2d");
-      x.fillStyle="#0f172a"; x.fillRect(0,0,W,Ht);
-      x.fillStyle="#115e59"; x.fillRect(0,0,W,headerH-40);
-      x.fillStyle="rgba(163,230,53,0.18)"; x.beginPath(); x.arc(W-90,90,150,0,7); x.fill();
+      x.fillStyle="#1A1512"; x.fillRect(0,0,W,Ht);
+      x.fillStyle="#14322A"; x.fillRect(0,0,W,headerH-40);
+      x.fillStyle="rgba(184,134,11,0.22)"; x.beginPath(); x.arc(W-90,90,150,0,7); x.fill();
       x.textBaseline="alphabetic";
-      x.fillStyle="#bef264"; x.font="bold 26px sans-serif"; x.fillText("DAILY REPORT", pad, 100);
+      x.fillStyle="#E8D5A3"; x.font="bold 26px sans-serif"; x.fillText("DAILY REPORT", pad, 100);
       x.fillStyle="#ffffff"; x.font="bold 62px sans-serif"; x.fillText("Early Morning", pad, 185); x.fillText("Pickle Showdown", pad, 255);
-      x.fillStyle="#ccfbf1"; x.font="40px sans-serif"; x.fillText(fullDate(rep.date), pad, 320);
-      x.fillStyle="#99f6e4"; x.font="28px sans-serif"; x.fillText(rep.headline, pad, 372);
+      x.fillStyle="#D8E5DC"; x.font="40px sans-serif"; x.fillText(fullDate(rep.date), pad, 320);
+      x.fillStyle="#BFE0CD"; x.font="28px sans-serif"; x.fillText(rep.headline, pad, 372);
       var y=headerH;
       blocks.forEach(function(b){
-        x.fillStyle="#1e293b"; roundRect(x, pad, y, cardW, b.h, 20); x.fill();
-        x.textBaseline="top"; x.fillStyle="#a3e635"; x.font="bold 30px sans-serif"; x.fillText(b.c.t.toUpperCase(), pad+34, y+30);
+        x.fillStyle="#241F1A"; roundRect(x, pad, y, cardW, b.h, 20); x.fill();
+        x.textBaseline="top"; x.fillStyle="#D4AF37"; x.font="bold 30px sans-serif"; x.fillText(b.c.t.toUpperCase(), pad+34, y+30);
         x.fillStyle="#e2e8f0"; x.font="30px sans-serif";
         b.lines.forEach(function(ln,i){ x.fillText(ln, pad+34, y+30+48+i*40); });
         y+=b.h+18;
