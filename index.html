@@ -172,6 +172,18 @@
   .statbox{ border:1px solid var(--s200); border-radius:14px; background:#fff; padding:12px; text-align:center; }
   .statbox .sv{ font-size:19px; font-weight:800; color:var(--teal); }
   .statbox .sl{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--s400); margin-top:2px; }
+  .trendchart{ margin-top:12px; border:1px solid var(--s200); border-radius:16px; background:#fff; padding:14px 10px 10px; }
+  .legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .legenditem{ display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--s700); background:var(--s50); border:1px solid var(--s200); border-radius:999px; padding:4px 10px; }
+  .legenddot{ width:8px; height:8px; border-radius:50%; flex:none; }
+  .trendtable{ margin-top:16px; overflow-x:auto; border:1px solid var(--s200); border-radius:16px; background:#fff; -webkit-overflow-scrolling:touch; }
+  .trendrow{ display:grid; }
+  .trendrow.trendhead{ background:var(--s100); }
+  .trendrow+.trendrow{ border-top:1px solid var(--s100); }
+  .tc{ padding:10px 6px; font-size:12px; text-align:center; white-space:nowrap; }
+  .tc.tn{ text-align:left; font-weight:600; color:var(--s900); overflow:hidden; text-overflow:ellipsis; padding-left:12px; }
+  .tc.th{ color:var(--s500); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .tc.td{ font-variant-numeric:tabular-nums; color:var(--s700); font-weight:600; }
 </style>
 </head>
 <body>
@@ -202,7 +214,7 @@
     showMatch:false, _present:null, _teams:null, _sitout:null, _emojiFor:null,
     hA:"", hB:"", hMode:"opponents", p1a:"", p1b:"", p2a:"", p2b:"",
     showKotc:false, _kotcPresent:null, _kotc:null,
-    _profileId:null, _achPeriod:"day" };
+    _profileId:null, _achPeriod:"day", _trendMonths:3, _trendMode:"pct" };
   var savingFlight=false, pendingSave=null;
 
   function uid(){ return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8); }
@@ -214,6 +226,7 @@
   function emojiOf(id){ var p=state.players.find(function(x){return x.id===id;}); return (p&&p.emoji)?p.emoji:""; }
   function nameEmo(id){ var e=emojiOf(id); return (e?e+" ":"")+esc(nameOf(id)); }
   var EMOJI_CHOICES=["🎾","🔥","⚡","🦅","🐐","🦈","🐅","🚀","💪","🎯","🧊","👑","🌟","🐍","🦍","🎩","🍀","💎"];
+  var CHART_COLORS=["#1B4332","#B8860B","#3B6D91","#A6452C","#6B4E9C","#4A7C3F","#B0446E","#5A5A5A","#2C7A7B","#C08A2E","#8A3324","#3D5A80"];
   function activePlayers(){ return state.players.filter(function(p){return p.active!==false;}); }
   function removedPlayers(){ return state.players.filter(function(p){return p.active===false;}); }
   function monthGames(){
@@ -358,6 +371,132 @@
     return {games:gs2, label: MONTHS[ap[1]-1]+" "+ap[0]};
   }
 
+  function monthlyStats(numMonths){
+    var now=new Date();
+    var months=[];
+    for(var i=numMonths-1;i>=0;i--){
+      var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+      months.push({year:d.getFullYear(), month:d.getMonth(), label:MONTHS[d.getMonth()].slice(0,3)});
+    }
+    var playerIds={}, data={};
+    months.forEach(function(m, mi){
+      var gs=state.games.filter(function(g){ var p=g.date.split("-").map(Number); return p[0]===m.year && (p[1]-1)===m.month; });
+      var stats=statsFor(gs);
+      stats.forEach(function(r){
+        playerIds[r.id]=true;
+        if(!data[r.id]) data[r.id]=months.map(function(){return null;});
+        data[r.id][mi]={g:r.g,w:r.w,pct:r.g?Math.round((r.w/r.g)*100):null};
+      });
+    });
+    var ids=Object.keys(playerIds);
+    ids.forEach(function(id){ if(!data[id]) data[id]=months.map(function(){return null;}); });
+    function lastKnownPct(arr){ for(var i=arr.length-1;i>=0;i--){ if(arr[i]&&arr[i].pct!==null) return arr[i].pct; } return null; }
+    ids.sort(function(a,b){
+      var la=lastKnownPct(data[a]), lb=lastKnownPct(data[b]);
+      if(la===null && lb===null) return nameOf(a).localeCompare(nameOf(b));
+      if(la===null) return 1; if(lb===null) return -1;
+      return lb-la;
+    });
+    return {months:months, ids:ids, data:data};
+  }
+  function rankAt(res, mi, id){
+    var entries=res.ids.map(function(pid){ var c=res.data[pid][mi]; return (c&&c.pct!==null)?{id:pid,pct:c.pct}:null; }).filter(Boolean);
+    entries.sort(function(a,b){ return b.pct-a.pct; });
+    for(var i=0;i<entries.length;i++){ if(entries[i].id===id) return i+1; }
+    return null;
+  }
+  function heatColor(pct){
+    var t=Math.max(0,Math.min(1,pct/100));
+    var r=Math.round(255-(255-216)*t), g=Math.round(255-(255-229)*t), b=Math.round(255-(255-220)*t);
+    return 'rgb('+r+','+g+','+b+')';
+  }
+  function rangeArr(a,b){ var r=[]; for(var i=a;i<=b;i++) r.push(i); return r; }
+
+  function trendChart(res, mode){
+    var n=res.months.length;
+    var W=340,H=200,padL=32,padR=10,padT=14,padB=24;
+    var plotW=W-padL-padR, plotH=H-padT-padB;
+    function xFor(mi){ return padL + (n<=1?plotW/2:(plotW*mi/(n-1))); }
+    var maxRank=Math.max(1,res.ids.length);
+    function yForPct(pct){ return padT + plotH*(1-pct/100); }
+    function yForRank(rank){ return padT + plotH*((rank-1)/Math.max(1,maxRank-1)); }
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">';
+    if(mode==="pct"){
+      [0,25,50,75,100].forEach(function(v){
+        var y=yForPct(v);
+        svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="#e2e8f0" stroke-width="1"/>';
+        svg+='<text x="'+(padL-6)+'" y="'+(y+3)+'" font-size="8" fill="#94a3b8" text-anchor="end">'+v+'%</text>';
+      });
+    } else {
+      var ranksToShow = maxRank<=5 ? rangeArr(1,maxRank) : [1, Math.ceil(maxRank/2), maxRank];
+      ranksToShow.forEach(function(r){
+        var y=yForRank(r);
+        svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="#e2e8f0" stroke-width="1"/>';
+        svg+='<text x="'+(padL-6)+'" y="'+(y+3)+'" font-size="8" fill="#94a3b8" text-anchor="end">#'+r+'</text>';
+      });
+    }
+    res.months.forEach(function(m,mi){
+      var x=xFor(mi);
+      var lbl=m.label+(m.month===0?("&rsquo;"+String(m.year).slice(2)):"");
+      svg+='<text x="'+x+'" y="'+(H-6)+'" font-size="9" fill="#334155" text-anchor="middle">'+lbl+'</text>';
+    });
+    res.ids.forEach(function(id, idx){
+      var color=CHART_COLORS[idx%CHART_COLORS.length];
+      var d="", started=false, pts=[];
+      res.months.forEach(function(m,mi){
+        var val = mode==="pct" ? ((res.data[id][mi]&&res.data[id][mi].pct!==null)?res.data[id][mi].pct:null) : rankAt(res,mi,id);
+        if(val===null||val===undefined){ started=false; return; }
+        var x=xFor(mi), y=mode==="pct"?yForPct(val):yForRank(val);
+        d += (started?"L":"M")+x.toFixed(1)+","+y.toFixed(1)+" ";
+        started=true;
+        pts.push([x,y]);
+      });
+      if(d) svg+='<path d="'+d.trim()+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      pts.forEach(function(p){ svg+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="'+color+'"/>'; });
+    });
+    svg+='</svg>';
+    var legend='<div class="legend">'+res.ids.map(function(id,idx){
+      return '<span class="legenditem"><span class="legenddot" style="background:'+CHART_COLORS[idx%CHART_COLORS.length]+'"></span>'+esc(nameOf(id))+'</span>';
+    }).join("")+'</div>';
+    return '<div class="trendchart">'+svg+legend+'</div>';
+  }
+  function trendTable(res){
+    var n=res.months.length;
+    var cols='120px repeat('+n+',60px)';
+    var html='<div class="trendtable"><div class="trendrow trendhead" style="grid-template-columns:'+cols+'">'+
+      '<div class="tc th"></div>'+
+      res.months.map(function(m){ return '<div class="tc th">'+m.label+(m.month===0?("&rsquo;"+String(m.year).slice(2)):"")+'</div>'; }).join("")+
+      '</div>';
+    res.ids.forEach(function(id){
+      html+='<div class="trendrow" style="grid-template-columns:'+cols+'" data-act="viewprofile" data-id="'+id+'">'+
+        '<div class="tc tn">'+(emojiOf(id)?emojiOf(id)+" ":"")+esc(nameOf(id))+'</div>'+
+        res.data[id].map(function(cell){
+          if(!cell || cell.pct===null) return '<div class="tc td">&mdash;</div>';
+          return '<div class="tc td" style="background:'+heatColor(cell.pct)+'">'+cell.pct+'%</div>';
+        }).join("")+
+        '</div>';
+    });
+    html+='</div>';
+    return html;
+  }
+  function trendsScreen(){
+    var n=state._trendMonths||3;
+    var mode=state._trendMode||"pct";
+    var res=monthlyStats(n);
+    var html='<div class="modes">'+
+      [3,6,12].map(function(v){ return '<button class="'+(n===v?'on':'')+'" data-act="trendmonths" data-n="'+v+'">'+v+' months</button>'; }).join("")+
+      '</div>';
+    html+='<div class="modes" style="margin-top:6px">'+
+      '<button class="'+(mode==="pct"?'on':'')+'" data-act="trendmode" data-m="pct">Win %</button>'+
+      '<button class="'+(mode==="rank"?'on':'')+'" data-act="trendmode" data-m="rank">Rank</button>'+
+      '</div>';
+    if(!res.ids.length) return html+emptyHTML("📈","No data yet","Play some games across a few months and trends will show up here.",null);
+    html+=trendChart(res, mode);
+    html+=trendTable(res);
+    html+='<div class="note">Tap a row to view that player\u2019s profile</div>';
+    return html;
+  }
+
   function duo(idA, idB){
     var res={ games:0, wins:0, losses:0, pf:0, pa:0, list:[] };
     state.games.forEach(function(g){
@@ -413,7 +552,7 @@
     html+='</div>';
     return html;
   }
-  function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); if(state.tab==="h2h")return h2hScreen(); if(state.tab==="profile")return profileScreen(); if(state.tab==="achievements")return achievements(); return playersScreen(ap); }
+  function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); if(state.tab==="h2h")return h2hScreen(); if(state.tab==="profile")return profileScreen(); if(state.tab==="achievements")return achievements(); if(state.tab==="trends")return trendsScreen(); return playersScreen(ap); }
 
   function leaderboard(ap){
     var gs=monthGames(); var mode=state.boardMode;
@@ -763,6 +902,7 @@
       '<button class="pill" data-act="openmatch">🎲 Teams</button>'+
       '<button class="pill" data-act="openkotc">👑 KOTC</button>'+
       '<button class="pill '+(state.tab==="report"?'on':'')+'" data-act="ttab" data-t="report">📋 Analyst</button>'+
+      '<button class="pill '+(state.tab==="trends"?'on':'')+'" data-act="ttab" data-t="trends">📈 Trends</button>'+
       '<button class="pill '+(state.tab==="achievements"?'on':'')+'" data-act="ttab" data-t="achievements">🏅 Awards</button>'+
       '<button class="pill '+(state.tab==="players"?'on':'')+'" data-act="ttab" data-t="players">👥 Players</button></div>';
   }
@@ -1018,6 +1158,8 @@
     else if(a==="genrandom"){ genTeams(false); }
     else if(a==="viewprofile"){ state._profileId=el.getAttribute("data-id"); state.tab="profile"; render(); }
     else if(a==="achperiod"){ state._achPeriod=el.getAttribute("data-p"); render(); }
+    else if(a==="trendmonths"){ state._trendMonths=+el.getAttribute("data-n"); render(); }
+    else if(a==="trendmode"){ state._trendMode=el.getAttribute("data-m"); render(); }
     else if(a==="openkotc"){ state.showKotc=true; render(); }
     else if(a==="closekotc"){ state.showKotc=false; state._kotc=null; state._kotcPresent=null; render(); }
     else if(a==="endkotc"){ state.showKotc=false; state._kotc=null; state._kotcPresent=null; render(); }
