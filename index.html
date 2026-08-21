@@ -172,10 +172,6 @@
   .statbox{ border:1px solid var(--s200); border-radius:14px; background:#fff; padding:12px; text-align:center; }
   .statbox .sv{ font-size:19px; font-weight:800; color:var(--teal); }
   .statbox .sl{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--s400); margin-top:2px; }
-  .trendchart{ margin-top:12px; border:1px solid var(--s200); border-radius:16px; background:#fff; padding:14px 10px 10px; }
-  .legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-  .legenditem{ display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--s700); background:var(--s50); border:1px solid var(--s200); border-radius:999px; padding:4px 10px; }
-  .legenddot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .trendtable{ margin-top:16px; overflow-x:auto; border:1px solid var(--s200); border-radius:16px; background:#fff; -webkit-overflow-scrolling:touch; }
   .trendrow{ display:grid; }
   .trendrow.trendhead{ background:var(--s100); }
@@ -226,7 +222,6 @@
   function emojiOf(id){ var p=state.players.find(function(x){return x.id===id;}); return (p&&p.emoji)?p.emoji:""; }
   function nameEmo(id){ var e=emojiOf(id); return (e?e+" ":"")+esc(nameOf(id)); }
   var EMOJI_CHOICES=["🎾","🔥","⚡","🦅","🐐","🦈","🐅","🚀","💪","🎯","🧊","👑","🌟","🐍","🦍","🎩","🍀","💎"];
-  var CHART_COLORS=["#1B4332","#B8860B","#3B6D91","#A6452C","#6B4E9C","#4A7C3F","#B0446E","#5A5A5A","#2C7A7B","#C08A2E","#8A3324","#3D5A80"];
   function activePlayers(){ return state.players.filter(function(p){return p.active!==false;}); }
   function removedPlayers(){ return state.players.filter(function(p){return p.active===false;}); }
   function monthGames(){
@@ -410,57 +405,8 @@
     var r=Math.round(255-(255-216)*t), g=Math.round(255-(255-229)*t), b=Math.round(255-(255-220)*t);
     return 'rgb('+r+','+g+','+b+')';
   }
-  function rangeArr(a,b){ var r=[]; for(var i=a;i<=b;i++) r.push(i); return r; }
 
-  function trendChart(res, mode){
-    var n=res.months.length;
-    var W=340,H=200,padL=32,padR=10,padT=14,padB=24;
-    var plotW=W-padL-padR, plotH=H-padT-padB;
-    function xFor(mi){ return padL + (n<=1?plotW/2:(plotW*mi/(n-1))); }
-    var maxRank=Math.max(1,res.ids.length);
-    function yForPct(pct){ return padT + plotH*(1-pct/100); }
-    function yForRank(rank){ return padT + plotH*((rank-1)/Math.max(1,maxRank-1)); }
-    var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">';
-    if(mode==="pct"){
-      [0,25,50,75,100].forEach(function(v){
-        var y=yForPct(v);
-        svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="#e2e8f0" stroke-width="1"/>';
-        svg+='<text x="'+(padL-6)+'" y="'+(y+3)+'" font-size="8" fill="#94a3b8" text-anchor="end">'+v+'%</text>';
-      });
-    } else {
-      var ranksToShow = maxRank<=5 ? rangeArr(1,maxRank) : [1, Math.ceil(maxRank/2), maxRank];
-      ranksToShow.forEach(function(r){
-        var y=yForRank(r);
-        svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="#e2e8f0" stroke-width="1"/>';
-        svg+='<text x="'+(padL-6)+'" y="'+(y+3)+'" font-size="8" fill="#94a3b8" text-anchor="end">#'+r+'</text>';
-      });
-    }
-    res.months.forEach(function(m,mi){
-      var x=xFor(mi);
-      var lbl=m.label+(m.month===0?("&rsquo;"+String(m.year).slice(2)):"");
-      svg+='<text x="'+x+'" y="'+(H-6)+'" font-size="9" fill="#334155" text-anchor="middle">'+lbl+'</text>';
-    });
-    res.ids.forEach(function(id, idx){
-      var color=CHART_COLORS[idx%CHART_COLORS.length];
-      var d="", started=false, pts=[];
-      res.months.forEach(function(m,mi){
-        var val = mode==="pct" ? ((res.data[id][mi]&&res.data[id][mi].pct!==null)?res.data[id][mi].pct:null) : rankAt(res,mi,id);
-        if(val===null||val===undefined){ started=false; return; }
-        var x=xFor(mi), y=mode==="pct"?yForPct(val):yForRank(val);
-        d += (started?"L":"M")+x.toFixed(1)+","+y.toFixed(1)+" ";
-        started=true;
-        pts.push([x,y]);
-      });
-      if(d) svg+='<path d="'+d.trim()+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-      pts.forEach(function(p){ svg+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="'+color+'"/>'; });
-    });
-    svg+='</svg>';
-    var legend='<div class="legend">'+res.ids.map(function(id,idx){
-      return '<span class="legenditem"><span class="legenddot" style="background:'+CHART_COLORS[idx%CHART_COLORS.length]+'"></span>'+esc(nameOf(id))+'</span>';
-    }).join("")+'</div>';
-    return '<div class="trendchart">'+svg+legend+'</div>';
-  }
-  function trendTable(res){
+  function trendTable(res, mode){
     var n=res.months.length;
     var cols='120px repeat('+n+',60px)';
     var html='<div class="trendtable"><div class="trendrow trendhead" style="grid-template-columns:'+cols+'">'+
@@ -470,7 +416,11 @@
     res.ids.forEach(function(id){
       html+='<div class="trendrow" style="grid-template-columns:'+cols+'" data-act="viewprofile" data-id="'+id+'">'+
         '<div class="tc tn">'+(emojiOf(id)?emojiOf(id)+" ":"")+esc(nameOf(id))+'</div>'+
-        res.data[id].map(function(cell){
+        res.data[id].map(function(cell,mi){
+          if(mode==="rank"){
+            var rank=rankAt(res,mi,id);
+            return rank===null ? '<div class="tc td">&mdash;</div>' : '<div class="tc td">#'+rank+'</div>';
+          }
           if(!cell || cell.pct===null) return '<div class="tc td">&mdash;</div>';
           return '<div class="tc td" style="background:'+heatColor(cell.pct)+'">'+cell.pct+'%</div>';
         }).join("")+
@@ -491,8 +441,7 @@
       '<button class="'+(mode==="rank"?'on':'')+'" data-act="trendmode" data-m="rank">Rank</button>'+
       '</div>';
     if(!res.ids.length) return html+emptyHTML("📈","No data yet","Play some games across a few months and trends will show up here.",null);
-    html+=trendChart(res, mode);
-    html+=trendTable(res);
+    html+=trendTable(res, mode);
     html+='<div class="note">Tap a row to view that player\u2019s profile</div>';
     return html;
   }
