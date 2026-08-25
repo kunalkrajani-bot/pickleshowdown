@@ -183,25 +183,6 @@
   .tc.tn{ text-align:left; font-weight:600; color:var(--s900); overflow:hidden; text-overflow:ellipsis; padding-left:12px; }
   .tc.th{ color:var(--s500); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
   .tc.td{ font-variant-numeric:tabular-nums; color:var(--s700); font-weight:600; }
-  .voicebox{ margin-top:12px; padding:10px; border-radius:12px; border:1px dashed var(--s300); background:var(--s50); }
-  .vmicbtn{ width:100%; border-radius:10px; background:var(--teal); color:#fff; font-size:13px; font-weight:600; padding:10px; }
-  .vmicbtn:disabled{ background:var(--s200); color:var(--s400); }
-  .voicelisten{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--s700); margin-bottom:8px; }
-  .voicedot{ width:10px; height:10px; border-radius:50%; background:#dc2626; flex:none; animation:voicepulse 1s ease-in-out infinite; }
-  @keyframes voicepulse{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.35; transform:scale(1.35); } }
-  .voiceedit{ width:100%; border-radius:10px; border:1px solid var(--s200); padding:8px 10px; font-size:13px; font-family:inherit; resize:vertical; background:#fff; }
-  .voiceedit:focus{ border-color:var(--teal); outline:none; }
-  .batchitem{ margin-top:10px; padding:10px; border-radius:12px; border:1px solid var(--s200); background:#fff; }
-  .batchitem.batchbad{ border-color:#fca5a5; background:#fef2f2; }
-  .batchrow{ display:flex; align-items:center; gap:10px; margin-top:6px; }
-  .batchstatus{ font-size:11px; color:var(--s500); flex:1; }
-  .batchtoggle{ display:flex; align-items:center; gap:4px; font-size:11px; color:var(--s700); }
-  .batchrecheck{ width:30px; height:30px; border-radius:8px; background:var(--s100); color:var(--s700); font-size:14px; flex:none; }
-  .quickadd{ display:flex; gap:8px; margin-top:10px; }
-  .qainput{ flex:1; border-radius:10px; border:1px solid var(--s200); padding:10px 12px; font-size:14px; font-family:inherit; }
-  .qainput:focus{ border-color:var(--teal); outline:none; }
-  .qabtn{ border-radius:10px; background:var(--teal); color:#fff; font-weight:600; font-size:14px; padding:0 18px; flex:none; }
-  .qabtn:disabled{ background:var(--s200); color:var(--s400); }
 </style>
 </head>
 <body>
@@ -222,26 +203,6 @@
       body:JSON.stringify({ data:{players:st.players,games:st.games}, updated_at:new Date().toISOString() }) })
       .then(function(r){ if(!r.ok) throw new Error("save "+r.status); });
   }
-  function loadVoiceLog(){
-    return fetch(SB_URL + "/rest/v1/voice_log?select=id,text&order=created_at.asc", { headers: H })
-      .then(function(r){ if(!r.ok) throw new Error("load "+r.status); return r.json(); });
-  }
-  function deleteVoiceLogRows(ids){
-    if(!ids || !ids.length) return Promise.resolve();
-    return fetch(SB_URL + "/rest/v1/voice_log?id=in.(" + ids.join(",") + ")", {
-      method: "DELETE",
-      headers: Object.assign({}, H, { "Prefer": "return=minimal" })
-    }).then(function(r){ if(!r.ok) throw new Error("delete "+r.status); });
-  }
-  function postVoiceLogEntry(text){
-    return fetch(SB_URL + "/rest/v1/voice_log", {
-      method: "POST",
-      headers: Object.assign({}, H, { "Prefer": "return=representation" }),
-      body: JSON.stringify([{ text: text }])
-    }).then(function(r){ if(!r.ok) throw new Error("insert "+r.status); return r.json(); })
-      .then(function(rows){ return rows && rows[0]; });
-  }
-
   var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
   var WEEKDAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   var now=new Date();
@@ -251,8 +212,7 @@
     showMatch:false, _present:null, _teams:null, _sitout:null, _emojiFor:null,
     hA:"", hB:"", hMode:"opponents", p1a:"", p1b:"", p2a:"", p2b:"",
     showKotc:false, _kotcPresent:null, _kotc:null,
-    showBatch:false, _batchItems:null, _batchPasteText:"", _batchLoading:false, _qaText:"", _qaStatus:null, _showPaste:false,
-    _profileId:null, _achPeriod:"day", _trendMonths:3, _trendMode:"pct" };
+        _profileId:null, _achPeriod:"day", _trendMonths:3, _trendMode:"pct" };
   var savingFlight=false, pendingSave=null;
 
   function uid(){ return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8); }
@@ -522,7 +482,7 @@
   }
 
   function render(){ var ap=activePlayers();
-    document.getElementById("app").innerHTML = header(ap)+"<main>"+body(ap)+"</main>"+histPills()+nav(ap)+(state.showNew?sheet(ap):"")+(state.showMatch?matchSheet(ap):"")+(state.showKotc?kotcScreen(ap):"")+(state.showBatch?batchScreen():"");
+    document.getElementById("app").innerHTML = header(ap)+"<main>"+body(ap)+"</main>"+histPills()+nav(ap)+(state.showNew?sheet(ap):"")+(state.showMatch?matchSheet(ap):"")+(state.showKotc?kotcScreen(ap):"");
     wire(); }
   function syncInfo(){ return ({loading:["#fde68a","Loading"],synced:["var(--lime)","Live"],saving:["#fde68a","Saving"],offline:["#fca5a5","Offline"]})[state.sync]||["var(--lime)","Live"]; }
   function updateSync(){ var i=syncInfo(); var d=document.getElementById("syncDot"); var t=document.getElementById("syncTxt"); if(d){ d.style.background=i[0]; } if(t) t.textContent=i[1]; }
@@ -892,7 +852,6 @@
       '<button class="pill '+(state.tab==="h2h"?'on':'')+'" data-act="ttab" data-t="h2h">🆚 H2H</button>'+
       '<button class="pill" data-act="openmatch">🎲 Teams</button>'+
       '<button class="pill" data-act="openkotc">👑 KOTC</button>'+
-      '<button class="pill" data-act="openbatch">📝 Sync log</button>'+
       '<button class="pill '+(state.tab==="report"?'on':'')+'" data-act="ttab" data-t="report">📋 Analyst</button>'+
       '<button class="pill '+(state.tab==="trends"?'on':'')+'" data-act="ttab" data-t="trends">📈 Trends</button>'+
       '<button class="pill '+(state.tab==="achievements"?'on':'')+'" data-act="ttab" data-t="achievements">🏅 Awards</button>'+
@@ -920,29 +879,9 @@
     }
     function tbox(label,tint,ka,kb){ return '<div class="tbox '+tint+'"><div class="lab"><span class="dot"></span>'+label+'</div>'+slot(ka)+'<div class="gap"></div>'+slot(kb)+'</div>'; }
     function sbox(label,key,val){ return '<div class="stepbox"><div class="lab">'+label+'</div><div class="stepper"><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="-1">&minus;</button><input class="snum tnum" type="number" inputmode="numeric" min="0" data-act="snum" data-key="'+key+'" value="'+val+'" /><button class="stepbtn" data-act="step" data-key="'+key+'" data-d="1">+</button></div></div>'; }
-    function voiceBox(){
-      var vs=d._voiceStatus;
-      var html='<div class="voicebox">';
-      if(vs==="listening"){
-        html+='<div class="voicelisten"><span class="voicedot"></span> Listening&hellip; try \u201cAlice and Bob vs Carol and Dave, fifteen to eleven\u201d</div>';
-      } else if(vs==="unsupported"){
-        html+='<div class="note" style="text-align:left;margin:0 0 8px">Voice recording isn\u2019t available in this browser. Tap a name or score field above, then the \ud83c\udfa4 on your keyboard instead.</div>';
-      } else if(vs==="error"){
-        html+='<div class="note" style="text-align:left;margin:0 0 8px;color:#dc2626">Didn\u2019t catch that. Try again, or fill it in manually above.</div>';
-      } else if(vs==="heard"){
-        html+='<div class="note" style="text-align:left;margin:0 0 6px">Heard (tap to fix any word, then re-check):</div>';
-        html+='<textarea class="voiceedit" data-act="voiceedit" rows="2">'+esc(d._voiceTranscript||"")+'</textarea>';
-        html+='<div class="note" style="text-align:left;margin:6px 0 8px">Matched '+(d._voiceNames||0)+' player'+(d._voiceNames===1?'':'s')+' and '+(d._voiceNums||0)+' number'+(d._voiceNums===1?'':'s')+'. Check the boxes above before saving.</div>';
-        html+='<button class="vmicbtn" data-act="voicereparse" style="background:var(--s700);margin-bottom:8px">\u21bb Re-check text</button>';
-      }
-      html+='<button class="vmicbtn" data-act="voicerecord" '+(vs==="listening"?'disabled':'')+'>'+(vs==="listening"?'🎙️ Listening\u2026':(vs==="heard"?'🎤 Record again':'🎤 Record whole match by voice'))+'</button>';
-      html+='</div>';
-      return html;
-    }
     return '<div class="overlay" data-act="bg"><div class="sheet"><div class="grab"></div>'+
       '<div class="shead"><h2>🎾 Record game</h2><button class="closeb" data-act="closenew">&times;</button></div>'+
       '<div class="note" style="text-align:left;margin-top:4px">Tip: tap a name box, then the 🎤 on your keyboard to speak the name.</div>'+
-      voiceBox()+
       '<div class="two">'+tbox("Team A","teal","t1a","t1b")+tbox("Team B","lime","t2a","t2b")+'</div>'+
       '<div class="two">'+sbox("Team A score","s1",d.s1)+sbox("Team B score","s2",d.s2)+'</div>'+
       '<div class="datebox"><span class="dl">📅 Date</span><input type="date" value="'+d.date+'" data-act="setdate" /></div>'+
@@ -1028,45 +967,6 @@
       '<input class="snum tnum" type="number" inputmode="numeric" min="0" data-act="ksnum" data-field="'+field+'" value="'+val+'" />'+
       '<button class="stepbtn" data-act="kstep" data-field="'+field+'" data-d="1">+</button></div></div>';
   }
-  function batchScreen(){
-    if(state._batchLoading){
-      return '<div class="overlay" data-act="bgbatch"><div class="sheet"><div class="grab"></div>'+
-        '<div class="shead"><h2>📝 Sync log</h2><button class="closeb" data-act="closebatch">&times;</button></div>'+
-        '<div class="note" style="margin-top:20px">Checking for pending entries&hellip;</div></div></div>';
-    }
-    var items=state._batchItems||[];
-    var validCount=items.filter(function(it){ return it.include && it.valid; }).length;
-    var html='<div class="overlay" data-act="bgbatch"><div class="sheet"><div class="grab"></div>'+
-      '<div class="shead"><h2>📝 Sync log</h2><button class="closeb" data-act="closebatch">&times;</button></div>'+
-      '<div class="note" style="text-align:left;margin-top:4px">Type a quick line, e.g. \u201cLoki Mudit v Rajani Monak 15 12\u201d, and tap Add. Anyone in the group can add throughout the day \u2014 review and save whenever you\'re ready.</div>'+
-      '<div class="quickadd"><input type="text" class="qainput" data-act="qatext" placeholder="Loki Mudit v Rajani Monak 15 12" value="'+esc(state._qaText||"")+'" />'+
-        '<button class="qabtn" data-act="qaadd" '+(state._qaStatus==="saving"?'disabled':'')+'>'+(state._qaStatus==="saving"?'\u2026':'Add')+'</button></div>';
-    if(state._qaStatus==="error") html+='<div class="note" style="color:#dc2626;text-align:left;margin-top:6px">Couldn\u2019t save that \u2014 check your connection and try again.</div>';
-    html+='<button class="ghost" data-act="togglepaste" style="margin-top:10px;display:block">'+(state._showPaste?'Hide paste box':'Or paste several lines at once')+'</button>';
-    if(state._showPaste){
-      html+='<textarea class="voiceedit" data-act="batchpaste" rows="4" placeholder="One match per line" style="margin-top:8px">'+esc(state._batchPasteText||"")+'</textarea>'+
-        '<button class="vmicbtn" data-act="batchparse" style="margin-top:8px;background:var(--s700)">Parse &amp; add to list</button>';
-    }
-    if(!items.length){
-      html+=emptyHTML("📝","Nothing logged yet","Add your first match above, or check back after someone else adds one.",null);
-    } else {
-      html+='<div class="note" style="text-align:left;margin-top:16px">'+items.length+' line'+(items.length===1?'':'s')+' \u2014 review, fix anything, then save.</div>';
-      items.forEach(function(it, idx){
-        var missing = 4-it.names;
-        var statusTxt = it.valid ? '✓ Ready' : ('⚠ needs '+(missing>0?missing+' more player'+(missing===1?'':'s'):'')+(missing>0 && it.nums<2?' & ':'')+(it.nums<2?'a score':''));
-        html+='<div class="batchitem '+(it.valid?'':'batchbad')+'">'+
-          '<textarea class="voiceedit" data-act="batchedit" data-idx="'+idx+'" rows="2">'+esc(it.raw)+'</textarea>'+
-          '<div class="batchrow">'+
-            '<span class="batchstatus">'+statusTxt+'</span>'+
-            '<label class="batchtoggle"><input type="checkbox" data-act="batchtoggle" data-idx="'+idx+'" '+(it.include?'checked':'')+(it.valid?'':' disabled')+' /> Include</label>'+
-            '<button class="batchrecheck" data-act="batchrecheck" data-idx="'+idx+'">\u21bb</button>'+
-          '</div></div>';
-      });
-      html+='<button class="save" data-act="batchsaveall" '+(validCount?'':'disabled')+'>Save '+validCount+' game'+(validCount===1?'':'s')+'</button>';
-    }
-    html+='</div></div>';
-    return html;
-  }
   function kotcScreen(ap){
     if(!state._kotcPresent) state._kotcPresent={};
     if(!state._kotc){
@@ -1141,15 +1041,6 @@
       if(act==="hpick"){ el.addEventListener("change",function(e){ state[e.target.getAttribute("data-slot")]=e.target.value; render(); }); return; }
       if(act==="ptype"){ el.addEventListener("input",onNameType); return; }
       if(act==="snum"){ el.addEventListener("input",onScoreType); return; }
-      if(act==="voiceedit"){ el.addEventListener("input",function(e){ if(state.draft) state.draft._voiceTranscript=e.target.value; }); return; }
-      if(act==="batchedit"){ el.addEventListener("input",function(e){ var idx=+e.target.getAttribute("data-idx"); if(state._batchItems&&state._batchItems[idx]) state._batchItems[idx].raw=e.target.value; }); return; }
-      if(act==="batchpaste"){ el.addEventListener("input",function(e){ state._batchPasteText=e.target.value; }); return; }
-      if(act==="qatext"){
-        el.addEventListener("input",function(e){ state._qaText=e.target.value; });
-        el.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); submitQuickAdd(); } });
-        return;
-      }
-      if(act==="batchtoggle"){ el.addEventListener("change",function(e){ var idx=+e.target.getAttribute("data-idx"); if(state._batchItems&&state._batchItems[idx]) state._batchItems[idx].include=e.target.checked; render(); }); return; }
       if(act==="ksnum"){ el.addEventListener("input",function(e){ var f=e.target.getAttribute("data-field"); var v=parseInt(e.target.value,10); v=isNaN(v)?0:Math.max(0,v); if(state._kotc) state._kotc[f]=v; }); return; }
       if(act==="setdate"){ el.addEventListener("change",function(e){ state.draft.date=e.target.value; }); return; }
       if(act==="setday"){ el.addEventListener("change",function(e){
@@ -1186,91 +1077,6 @@
     sug.innerHTML = htmlS;
     sug.querySelectorAll("button").forEach(function(b){ b.addEventListener("click",onClick); });
   }
-  var NUMBER_WORDS={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
-    eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,
-    "twenty one":21,"twenty two":22};
-  function wordsToNumbers(text){
-    var t=" "+text.toLowerCase().replace(/-/g," ")+" ";
-    Object.keys(NUMBER_WORDS).sort(function(a,b){ return b.length-a.length; }).forEach(function(w){
-      var re=new RegExp("\\b"+w+"\\b","g");
-      t=t.replace(re, String(NUMBER_WORDS[w]));
-    });
-    return t;
-  }
-  function parseVoiceLine(raw){
-    var norm=wordsToNumbers(raw);
-    var nums=norm.match(/\d+/g)||[];
-    var ap=activePlayers();
-    var lower=norm.toLowerCase();
-    var found=[];
-    ap.forEach(function(p){
-      var idx=lower.indexOf(p.name.toLowerCase());
-      if(idx>-1) found.push({id:p.id, idx:idx});
-    });
-    found.sort(function(a,b){ return a.idx-b.idx; });
-    var ids=found.map(function(f){ return f.id; }).filter(function(id,i,arr){ return arr.indexOf(id)===i; });
-    return { ids:ids, nums:nums };
-  }
-  function applyVoiceTranscript(raw){
-    var d=state.draft; if(!d) return;
-    d._voiceTranscript=raw;
-    var parsed=parseVoiceLine(raw);
-    var ids=parsed.ids, nums=parsed.nums;
-    if(ids[0]) d.t1a=ids[0];
-    if(ids[1]) d.t1b=ids[1];
-    if(ids[2]) d.t2a=ids[2];
-    if(ids[3]) d.t2b=ids[3];
-    if(nums[0]!==undefined){ d.s1=+nums[0]; d._ts1=true; }
-    if(nums[1]!==undefined){ d.s2=+nums[1]; d._ts2=true; }
-    d._voiceStatus="heard"; d._voiceNames=ids.length; d._voiceNums=nums.length;
-    render();
-  }
-  function buildBatchItem(raw, logId){
-    var parsed=parseVoiceLine(raw);
-    var ids=parsed.ids, nums=parsed.nums;
-    var valid = ids.length>=4 && nums.length>=2 && (+nums[0]!==+nums[1]);
-    return {
-      raw: raw,
-      logId: logId!==undefined?logId:null,
-      t1a: ids[0]||null, t1b: ids[1]||null, t2a: ids[2]||null, t2b: ids[3]||null,
-      s1: nums[0]!==undefined?+nums[0]:null, s2: nums[1]!==undefined?+nums[1]:null,
-      names: ids.length, nums: nums.length,
-      valid: valid,
-      include: valid
-    };
-  }
-  function submitQuickAdd(){
-    var text=(state._qaText||"").trim();
-    if(!text || state._qaStatus==="saving") return;
-    state._qaStatus="saving"; render();
-    postVoiceLogEntry(text).then(function(row){
-      var newId = row ? row.id : null;
-      if(!state._batchItems) state._batchItems=[];
-      state._batchItems.push(buildBatchItem(text, newId));
-      state._qaText=""; state._qaStatus=null;
-      render();
-    }).catch(function(){
-      state._qaStatus="error"; render();
-    });
-  }
-  var activeRecognition=null;
-  function stopVoiceCapture(){
-    if(activeRecognition){ try{ activeRecognition.abort(); }catch(e){} activeRecognition=null; }
-  }
-  function startVoiceCapture(){
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!state.draft) return;
-    if(!SR){ state.draft._voiceStatus="unsupported"; render(); return; }
-    stopVoiceCapture();
-    var recog=new SR();
-    activeRecognition=recog;
-    recog.lang="en-US"; recog.interimResults=false; recog.maxAlternatives=1;
-    state.draft._voiceStatus="listening"; render();
-    recog.onresult=function(e){ activeRecognition=null; applyVoiceTranscript(e.results[0][0].transcript); };
-    recog.onerror=function(){ activeRecognition=null; if(state.draft){ state.draft._voiceStatus="error"; render(); } };
-    recog.onend=function(){ activeRecognition=null; if(state.draft && state.draft._voiceStatus==="listening"){ state.draft._voiceStatus="idle"; render(); } };
-    try{ recog.start(); }catch(err){ activeRecognition=null; state.draft._voiceStatus="error"; render(); }
-  }
   function onClick(e){ var el=e.currentTarget, a=el.getAttribute("data-act");
     if(a==="tab"){ state.tab=el.getAttribute("data-tab"); state.confirmDelete=null; render(); }
     else if(a==="ttab"){ var t=el.getAttribute("data-t"); state.tab=(state.tab===t?"board":t); state.confirmDelete=null; render(); }
@@ -1280,45 +1086,8 @@
     else if(a==="alltime"){ state.view.allTime=!state.view.allTime; state.view.day=null; render(); }
     else if(a==="clearday"){ state.view.day=null; render(); }
     else if(a==="opennew"){ openNew(); }
-    else if(a==="closenew"){ stopVoiceCapture(); state.showNew=false; state.draft=null; render(); }
-    else if(a==="bg"){ if(e.target===e.currentTarget){ stopVoiceCapture(); state.showNew=false; state.draft=null; render(); } }
-    else if(a==="voicerecord"){ startVoiceCapture(); }
-    else if(a==="voicereparse"){ applyVoiceTranscript(state.draft._voiceTranscript||""); }
-    else if(a==="openbatch"){
-      state.showBatch=true; state._batchItems=null; state._batchPasteText=""; state._batchLoading=true; state._qaText=""; state._qaStatus=null; state._showPaste=false; render();
-      loadVoiceLog().then(function(rows){
-        state._batchLoading=false;
-        if(rows && rows.length){ state._batchItems=rows.map(function(r){ return buildBatchItem(r.text, r.id); }); }
-        render();
-      }).catch(function(){ state._batchLoading=false; render(); });
-    }
-    else if(a==="closebatch"){ state.showBatch=false; state._batchItems=null; render(); }
-    else if(a==="bgbatch"){ if(e.target===e.currentTarget){ state.showBatch=false; state._batchItems=null; render(); } }
-    else if(a==="togglepaste"){ state._showPaste=!state._showPaste; render(); }
-    else if(a==="qaadd"){ submitQuickAdd(); }
-    else if(a==="batchparse"){
-      var braw=state._batchPasteText||"";
-      var blines=braw.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(function(l){ return l.length>0; });
-      var newItems=blines.map(function(l){ return buildBatchItem(l, null); });
-      state._batchItems=(state._batchItems||[]).concat(newItems);
-      state._batchPasteText=""; state._showPaste=false;
-      render();
-    }
-    else if(a==="batchrecheck"){
-      var bidx=+el.getAttribute("data-idx");
-      if(state._batchItems && state._batchItems[bidx]){ var oldItem=state._batchItems[bidx]; state._batchItems[bidx]=buildBatchItem(oldItem.raw, oldItem.logId); render(); }
-    }
-    else if(a==="batchsaveall"){
-      var bitems=state._batchItems||[];
-      var toSave=bitems.filter(function(it){ return it.include && it.valid; });
-      toSave.forEach(function(it){
-        state.games.push({id:uid(), t1:[it.t1a,it.t1b], t2:[it.t2a,it.t2b], s1:it.s1, s2:it.s2, date:todayISO()});
-      });
-      var idsToClear=toSave.filter(function(it){ return it.logId!=null; }).map(function(it){ return it.logId; });
-      state.showBatch=false; state._batchItems=null;
-      commit();
-      if(idsToClear.length) deleteVoiceLogRows(idsToClear).catch(function(){});
-    }
+    else if(a==="closenew"){ state.showNew=false; state.draft=null; render(); }
+    else if(a==="bg"){ if(e.target===e.currentTarget){ state.showNew=false; state.draft=null; render(); } }
     else if(a==="savegame"){ saveGame(); }
     else if(a==="step"){ var k=el.getAttribute("data-key"); state.draft[k]=Math.max(0,(+state.draft[k])+(+el.getAttribute("data-d"))); state.draft["_t"+k]=true; render(); }
     else if(a==="ppick"){ var slot=el.getAttribute("data-slot"); state.draft[slot]=el.getAttribute("data-id"); if(state.draft._typed) state.draft._typed[slot]=""; state.draft._active=null; render(); }
@@ -1470,7 +1239,7 @@
   }
 
   function stepMonth(dir){ if(state.view.day){ state.view.day=null; render(); return; } if(state.view.allTime){ state.view.allTime=false; render(); return; } var m=state.view.month+dir,y=state.view.year; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.view.month=m; state.view.year=y; render(); }
-  function openNew(){ if(activePlayers().length<4) return; state.draft={t1a:"",t1b:"",t2a:"",t2b:"",s1:0,s2:0,date:todayISO(),_typed:{},_active:null,_voiceStatus:null,_voiceTranscript:"",_voiceNames:0,_voiceNums:0}; state.showNew=true; render(); }
+  function openNew(){ if(activePlayers().length<4) return; state.draft={t1a:"",t1b:"",t2a:"",t2b:"",s1:0,s2:0,date:todayISO(),_typed:{},_active:null}; state.showNew=true; render(); }
   function saveGame(){ var d=state.draft; var picks=[d.t1a,d.t1b,d.t2a,d.t2b].filter(Boolean); if(picks.length!==4||new Set(picks).size!==4)return;
     state.games.push({id:uid(),t1:[d.t1a,d.t1b],t2:[d.t2a,d.t2b],s1:+d.s1||0,s2:+d.s2||0,date:d.date}); state.showNew=false; state.draft=null; state.tab="board"; commit(); }
   function addPlayer(){ var inp=document.getElementById("newPlayer"); if(!inp)return; var clean=inp.value.trim(); if(!clean)return;
@@ -1478,38 +1247,7 @@
     state.players.push({id:uid(),name:clean,active:true}); commit(); }
   function setActive(id,val){ var p=state.players.find(function(x){return x.id===id;}); if(p)p.active=val; commit(); }
 
-  function tryVoiceParam(){
-    try{
-      var params=new URLSearchParams(window.location.search);
-      var v=params.get("voice");
-      if(!v) return;
-      var url=new URL(window.location.href);
-      url.searchParams.delete("voice");
-      window.history.replaceState({}, "", url.pathname+url.search+url.hash);
-      if(activePlayers().length<4) return;
-      state.draft={t1a:"",t1b:"",t2a:"",t2b:"",s1:0,s2:0,date:todayISO(),_typed:{},_active:null,_voiceStatus:null,_voiceTranscript:"",_voiceNames:0,_voiceNums:0};
-      state.showNew=true;
-      applyVoiceTranscript(v);
-    }catch(e){}
-  }
-
-  function tryVoiceBatchParam(){
-    try{
-      var params=new URLSearchParams(window.location.search);
-      var v=params.get("voicebatch");
-      if(!v) return;
-      var url=new URL(window.location.href);
-      url.searchParams.delete("voicebatch");
-      window.history.replaceState({}, "", url.pathname+url.search+url.hash);
-      var lines=v.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(function(l){ return l.length>0; });
-      if(!lines.length) return;
-      state._batchItems=lines.map(function(l){ return buildBatchItem(l, null); });
-      state.showBatch=true;
-      render();
-    }catch(e){}
-  }
-
-  function boot(){ loadState().then(function(s){ state.players=s.players; state.games=s.games; state.sync="synced"; render(); tryVoiceParam(); tryVoiceBatchParam(); })
+  function boot(){ loadState().then(function(s){ state.players=s.players; state.games=s.games; state.sync="synced"; render(); })
     .catch(function(){ state.sync="offline"; render(); }); }
   setInterval(function(){ if(savingFlight||pendingSave||state.showNew) return;
     loadState().then(function(s){ var ch=JSON.stringify(s.players)!==JSON.stringify(state.players)||JSON.stringify(s.games)!==JSON.stringify(state.games);
