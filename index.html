@@ -432,6 +432,7 @@
     return html;
   }
   function winProbScreen(){
+    var WP_MIN=10;
     var days=state._wpDays||30;
     var cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days);
     var cutoffStr=cutoff.getFullYear()+"-"+String(cutoff.getMonth()+1).padStart(2,"0")+"-"+String(cutoff.getDate()).padStart(2,"0");
@@ -439,30 +440,42 @@
     var html='<div class="modes">'+
       [30,60].map(function(d){ return '<button class="'+(days===d?'on':'')+'" data-act="wpdays" data-d="'+d+'">Last '+d+' days</button>'; }).join("")+
       '</div>';
-    var stats=statsFor(games);
-    if(!stats.length) return html+emptyHTML("🔮","No recent games","Play some games in this window and a podium prediction will show up here.",null);
-    stats.forEach(function(r){ r.pct=r.g?r.w/r.g:0; });
-    stats.sort(function(a,b){ return b.pct-a.pct || b.g-a.g; });
-    var qualified=stats.filter(function(r){ return r.g>=QUAL_MIN; });
-    var podiumPool=qualified.length?qualified:stats;
-    html+='<div class="note" style="text-align:left;margin-top:8px">🔮 Predicted podium for next month, based on win % over the last '+days+' days'+(qualified.length?(' (min '+QUAL_MIN+' games)'):'')+'.</div>';
+    var allStats=statsFor(games);
+    if(!allStats.length) return html+emptyHTML("🔮","No recent games","Play some games in this window and a podium prediction will show up here.",null);
+    allStats.forEach(function(r){ r.pct=r.g?r.w/r.g:0; });
+    var qualified=allStats.filter(function(r){ return r.g>=WP_MIN; });
+    var nearly=allStats.filter(function(r){ return r.g>0 && r.g<WP_MIN; });
+    qualified.sort(function(a,b){ return b.pct-a.pct || b.g-a.g; });
+    html+='<div class="note" style="text-align:left;margin-top:8px">🔮 Predicted podium for next month, based on win % over the last '+days+' days (min '+WP_MIN+' games).</div>';
+    if(!qualified.length){
+      html+=emptyHTML("🔮","No one\u2019s qualified yet","Play "+WP_MIN+" games in this window to show up in the prediction.",null);
+      if(nearly.length){
+        var names0=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+WP_MIN+")";}).join(", ");
+        html+='<div class="note" style="margin-top:8px">Almost qualified: '+names0+'</div>';
+      }
+      return html;
+    }
     var items=[];
-    if(podiumPool[1]) items.push({r:podiumPool[1],cls:"p2",medal:"🥈"});
-    if(podiumPool[0]) items.push({r:podiumPool[0],cls:"p1",medal:"🥇"});
-    if(podiumPool[2]) items.push({r:podiumPool[2],cls:"p3",medal:"🥉"});
+    if(qualified[1]) items.push({r:qualified[1],cls:"p2",medal:"🥈"});
+    if(qualified[0]) items.push({r:qualified[0],cls:"p1",medal:"🥇"});
+    if(qualified[2]) items.push({r:qualified[2],cls:"p3",medal:"🥉"});
     if(items.length) html+='<div class="podium">'+items.map(function(it){
       return '<div class="pcol '+it.cls+'" data-act="viewprofile" data-id="'+it.r.id+'"><div class="pm">'+it.medal+'</div><div class="pn">'+esc(it.r.name)+'</div><div class="pv tnum">'+Math.round(it.r.pct*100)+'% win rate</div></div>';
     }).join("")+'</div>';
     html+='<div class="rows" style="margin-top:16px">';
-    stats.forEach(function(r,i){
-      var rank=i+1,total=stats.length; var cls=rank===1?"g1":rank===2?"g2":rank===3?"g3":"";
+    qualified.forEach(function(r,i){
+      var rank=i+1,total=qualified.length; var cls=rank===1?"g1":rank===2?"g2":rank===3?"g3":"";
       var rowcls=rank===1?"row first":(total>1&&rank===total)?"row last":"row";
-      var lowSample=r.g<QUAL_MIN;
       html+='<div class="'+rowcls+'" data-act="viewprofile" data-id="'+r.id+'"><div class="rank '+cls+' tnum">'+rank+'</div><div class="mood">'+moodEmoji(rank,total)+'</div>'+
-        '<div class="nm"><div class="n">'+(emojiOf(r.id)?emojiOf(r.id)+" ":"")+esc(r.name)+'</div><div class="s tnum">'+r.g+' game'+(r.g===1?'':'s')+' &middot; '+r.w+'W '+r.l+'L'+(lowSample?' &middot; small sample':'')+'</div></div>'+
+        '<div class="nm"><div class="n">'+(emojiOf(r.id)?emojiOf(r.id)+" ":"")+esc(r.name)+'</div><div class="s tnum">'+r.g+' game'+(r.g===1?'':'s')+' &middot; '+r.w+'W '+r.l+'L</div></div>'+
         '<div class="val"><div class="v tnum">'+Math.round(r.pct*100)+'%</div><div class="u">win rate</div></div></div>';
     });
-    html+='</div><div class="note">Prediction based on recent win % only &mdash; actual results depend on who shows up and plays</div>';
+    html+='</div>';
+    if(nearly.length){
+      var names1=nearly.sort(function(a,b){return b.g-a.g;}).map(function(r){return esc(r.name)+" ("+r.g+"/"+WP_MIN+")";}).join(", ");
+      html+='<div class="note" style="margin-top:8px">Almost qualified: '+names1+'</div>';
+    }
+    html+='<div class="note">Prediction based on recent win % only &mdash; actual results depend on who shows up and plays</div>';
     return html;
   }
   function trendsScreen(){
