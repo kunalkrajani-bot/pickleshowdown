@@ -212,7 +212,7 @@
     showMatch:false, _present:null, _teams:null, _sitout:null, _emojiFor:null,
     hA:"", hB:"", hMode:"opponents", p1a:"", p1b:"", p2a:"", p2b:"",
     showKotc:false, _kotcPresent:null, _kotc:null,
-        _profileId:null, _achPeriod:"day", _trendMonths:3, _trendMode:"pct" };
+        _profileId:null, _achPeriod:"day", _trendMonths:3, _trendMode:"pct", _wpDays:30 };
   var savingFlight=false, pendingSave=null;
 
   function uid(){ return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8); }
@@ -431,6 +431,55 @@
     html+='</div>';
     return html;
   }
+  function computeRecentRating(days){
+    var cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days);
+    var cutoffStr=cutoff.getFullYear()+"-"+String(cutoff.getMonth()+1).padStart(2,"0")+"-"+String(cutoff.getDate()).padStart(2,"0");
+    var games=state.games.filter(function(g){ return g.date>=cutoffStr; }).slice().sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; });
+    var ratings={}, gamesPlayed={};
+    function getR(id){ return ratings[id]!==undefined?ratings[id]:1000; }
+    var K=32;
+    games.forEach(function(g){
+      var r1=(getR(g.t1[0])+getR(g.t1[1]))/2, r2=(getR(g.t2[0])+getR(g.t2[1]))/2;
+      var e1=1/(1+Math.pow(10,(r2-r1)/400)), e2=1-e1;
+      var s1=+g.s1, s2=+g.s2;
+      var total=s1+s2;
+      var a1=total>0?s1/total:0.5, a2=1-a1;
+      var d1=K*(a1-e1), d2=K*(a2-e2);
+      if(s1>s2) d1=Math.max(0,d1);
+      if(s2>s1) d2=Math.max(0,d2);
+      d1=Math.round(d1); d2=Math.round(d2);
+      g.t1.forEach(function(id){ ratings[id]=getR(id)+d1; gamesPlayed[id]=(gamesPlayed[id]||0)+1; });
+      g.t2.forEach(function(id){ ratings[id]=getR(id)+d2; gamesPlayed[id]=(gamesPlayed[id]||0)+1; });
+    });
+    return { ratings:ratings, gamesPlayed:gamesPlayed };
+  }
+  function winProbScreen(){
+    var days=state._wpDays||30;
+    var comp=computeRecentRating(days);
+    var ids=Object.keys(comp.ratings);
+    var html='<div class="modes">'+
+      [30,60].map(function(d){ return '<button class="'+(days===d?'on':'')+'" data-act="wpdays" data-d="'+d+'">Last '+d+' days</button>'; }).join("")+
+      '</div>';
+    if(!ids.length) return html+emptyHTML("🎯","No recent games","Play some games in this window and win probability will show up here.",null);
+    var rows=ids.map(function(id){
+      var rating=comp.ratings[id];
+      var prob=1/(1+Math.pow(10,-(rating-1000)/400));
+      return { id:id, rating:Math.round(rating), prob:prob, games:comp.gamesPlayed[id]||0 };
+    });
+    rows.sort(function(a,b){ return b.prob-a.prob; });
+    html+='<div class="note" style="text-align:left;margin-top:8px">Win probability &middot; chance of beating an average (1000-rated) opponent, based only on games in this window.</div>';
+    html+='<div class="rows">';
+    rows.forEach(function(r,i){
+      var rank=i+1,total=rows.length; var cls=rank===1?"g1":rank===2?"g2":rank===3?"g3":"";
+      var rowcls=rank===1?"row first":(total>1&&rank===total)?"row last":"row";
+      var lowSample=r.games<QUAL_MIN;
+      html+='<div class="'+rowcls+'" data-act="viewprofile" data-id="'+r.id+'"><div class="rank '+cls+' tnum">'+rank+'</div><div class="mood">'+moodEmoji(rank,total)+'</div>'+
+        '<div class="nm"><div class="n">'+(emojiOf(r.id)?emojiOf(r.id)+" ":"")+esc(nameOf(r.id))+'</div><div class="s tnum">'+r.games+' game'+(r.games===1?'':'s')+' in window'+(lowSample?' &middot; small sample':'')+'</div></div>'+
+        '<div class="val"><div class="v tnum">'+Math.round(r.prob*100)+'%</div><div class="u">win prob</div></div></div>';
+    });
+    html+='</div><div class="note">Based on recent form only, not career history</div>';
+    return html;
+  }
   function trendsScreen(){
     var n=state._trendMonths||3;
     var mode=state._trendMode||"pct";
@@ -503,7 +552,7 @@
     html+='</div>';
     return html;
   }
-  function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); if(state.tab==="h2h")return h2hScreen(); if(state.tab==="profile")return profileScreen(); if(state.tab==="achievements")return achievements(); if(state.tab==="trends")return trendsScreen(); return playersScreen(ap); }
+  function body(ap){ if(state.tab==="board")return leaderboard(ap); if(state.tab==="games")return gamesList(); if(state.tab==="report")return analyst(); if(state.tab==="h2h")return h2hScreen(); if(state.tab==="profile")return profileScreen(); if(state.tab==="achievements")return achievements(); if(state.tab==="trends")return trendsScreen(); if(state.tab==="winprob")return winProbScreen(); return playersScreen(ap); }
 
   function leaderboard(ap){
     var gs=monthGames(); var mode=state.boardMode;
@@ -854,6 +903,7 @@
       '<button class="pill" data-act="openkotc">👑 KOTC</button>'+
       '<button class="pill '+(state.tab==="report"?'on':'')+'" data-act="ttab" data-t="report">📋 Analyst</button>'+
       '<button class="pill '+(state.tab==="trends"?'on':'')+'" data-act="ttab" data-t="trends">📈 Trends</button>'+
+      '<button class="pill '+(state.tab==="winprob"?'on':'')+'" data-act="ttab" data-t="winprob">🎯 Win Prob</button>'+
       '<button class="pill '+(state.tab==="achievements"?'on':'')+'" data-act="ttab" data-t="achievements">🏅 Awards</button>'+
       '<button class="pill '+(state.tab==="players"?'on':'')+'" data-act="ttab" data-t="players">👥 Players</button></div>';
   }
@@ -1115,6 +1165,7 @@
     else if(a==="genrandom"){ genTeams(false); }
     else if(a==="viewprofile"){ state._profileId=el.getAttribute("data-id"); state.tab="profile"; render(); }
     else if(a==="achperiod"){ state._achPeriod=el.getAttribute("data-p"); render(); }
+    else if(a==="wpdays"){ state._wpDays=+el.getAttribute("data-d"); render(); }
     else if(a==="trendmonths"){ state._trendMonths=+el.getAttribute("data-n"); render(); }
     else if(a==="trendmode"){ state._trendMode=el.getAttribute("data-m"); render(); }
     else if(a==="openkotc"){ state.showKotc=true; render(); }
